@@ -1,36 +1,104 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MarcenAI Enterprise SaaS
 
-## Getting Started
+Plataforma industrial para marcenaria planejada, engenharia paramétrica, validação estrutural e integração com produção (BOM/CNC).
 
-First, run the development server:
+## Arquitetura e Stack Tecnológica
+
+Sistema baseado em Clean Architecture, Domain-Driven Design (DDD) e princípios SOLID, preparado para escalabilidade e cenários *multi-tenant* (multiempresa).
+
+- **Frontend**: Next.js 15 (App Router), React 19, TailwindCSS, shadcn/ui.
+- **Backend**: Vercel Functions (Server Actions / Route Handlers).
+- **Banco de Dados**: PostgreSQL (via Neon Serverless).
+- **ORM**: Drizzle ORM.
+- **Autenticação**: Auth.js (Next-Auth v5) com RBAC (Role-Based Access Control).
+- **Estado Global**: Zustand (UI/Modais) + TanStack Query (Estado de Servidor).
+- **Validação**: Zod.
+
+## Estrutura de Diretórios (Clean Architecture)
+
+```
+/src
+├── app/                  # Next.js App Router (Rotas, Layouts, Pages)
+├── components/           # Componentes React
+│   ├── layout/           # Sidebar, Topbar, Dashboards
+│   └── ui/               # Componentes genéricos (shadcn)
+├── domain/               # Camada de Domínio (Entidades e Interfaces de Repositório)
+├── infrastructure/       # Implementação técnica (Banco, Drizzle, Repositórios)
+├── lib/                  # Utilitários (utils, constantes globais)
+├── modules/              # Funcionalidades específicas (Engenharia, Produção, etc.)
+├── services/             # Regras de Negócio (Use Cases)
+├── stores/               # Gerenciamento de Estado Global (Zustand)
+└── validators/           # Schemas de validação (Zod)
+```
+
+## Setup Local
+
+### Pré-requisitos
+- Node.js 20+
+- PNPM ou NPM
+- Banco PostgreSQL (Neon ou Docker local)
+
+### Variáveis de Ambiente
+
+Crie um arquivo `.env.local` na raiz do projeto:
+
+```env
+# Banco de Dados (Neon)
+DATABASE_URL="postgres://usuario:senha@host/marcenai?sslmode=require"
+
+# Auth.js
+AUTH_SECRET="sua_chave_secreta_gerada_via_openssl"
+NEXTAUTH_URL="http://localhost:3000"
+```
+
+### Instalação
+
+```bash
+npm install
+```
+
+### Banco de Dados (Drizzle)
+
+Gere as migrações e aplique no banco:
+
+```bash
+npm run db:generate
+npm run db:push
+```
+
+### Executando em Desenvolvimento
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+A aplicação estará disponível em `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Docker (Opcional)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Para rodar o PostgreSQL localmente via Docker:
 
-## Learn More
+```yaml
+# docker-compose.yml
+version: '3.8'
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: marcenai
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
 
-To learn more about Next.js, take a look at the following resources:
+volumes:
+  pgdata:
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Execute: `docker-compose up -d`. Altere a `DATABASE_URL` para apontar para `localhost`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Padrões de Código
+- **Commits**: Seguir o padrão Conventional Commits (feat, fix, refactor).
+- **Code Style**: Controlado via Prettier e ESLint. Husky e lint-staged configurados para rodar antes dos commits.
