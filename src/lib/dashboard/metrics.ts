@@ -4,7 +4,7 @@ import { producao } from '@/db/schema/producao';
 import { validacoes } from '@/db/schema/validacoes';
 import { apontamentoLogs } from '@/db/schema/rastreabilidade';
 import { sql, eq, sum, count, desc, gte } from 'drizzle-orm';
-import { redis } from '@/lib/ai/memory'; // Reaproveitando a instância do Upstash Redis
+import { getRedisClient } from '@/lib/ai/memory'; // Reaproveitando a instância do Upstash Redis
 import { subDays, format } from 'date-fns';
 
 export interface DashboardMetrics {
@@ -22,11 +22,16 @@ export interface DashboardMetrics {
  */
 export async function getExecutiveMetrics(empresaId: string, forceRefresh = false): Promise<DashboardMetrics> {
   const cacheKey = `dashboard:metrics:${empresaId}`;
+  const redis = getRedisClient();
 
-  if (!forceRefresh) {
-    const cached = await redis.get<string | DashboardMetrics>(cacheKey);
-    if (cached) {
-      return typeof cached === 'string' ? JSON.parse(cached) : cached;
+  if (redis && !forceRefresh) {
+    try {
+      const cached = await redis.get<string | DashboardMetrics>(cacheKey);
+      if (cached) {
+        return typeof cached === 'string' ? JSON.parse(cached) : cached;
+      }
+    } catch (error) {
+      console.error("[Upstash Redis] Erro ao ler cache:", error);
     }
   }
 
@@ -92,8 +97,14 @@ export async function getExecutiveMetrics(empresaId: string, forceRefresh = fals
     graficoRetrabalho
   };
 
-  // Cache expira em 10 minutos para o dashboard não onerar o banco com queries pesadas
-  await redis.setex(cacheKey, 600, JSON.stringify(payload));
+  if (redis) {
+    try {
+      // Cache expira em 10 minutos para o dashboard não onerar o banco com queries pesadas
+      await redis.setex(cacheKey, 600, JSON.stringify(payload));
+    } catch (error) {
+      console.error("[Upstash Redis] Erro ao gravar cache:", error);
+    }
+  }
 
   return payload;
 }
