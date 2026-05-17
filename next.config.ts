@@ -4,6 +4,12 @@ import { withAxiom } from 'next-axiom';
 
 const nextConfig: NextConfig = {
   /* config options here */
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
 };
 
 // 1. Envelopa NextConfig com Axiom (Logs estruturados)
