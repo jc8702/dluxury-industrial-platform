@@ -2347,6 +2347,38 @@ Adicionar ferragens (dobradiças, corrediças)
 Melhorar IA (mais documentação RAG)
 
 
+# FASE 9: DASHBOARD ADMIN / SUPERADMIN (SaaS Control Panel) [CONCLUÍDA ✅]
+Objetivo: Implementar o painel de controle global (SuperAdmin) para gerenciamento de Tenants, assinaturas, planos de faturamento e auditoria global.
+
+### Sub-Fase 9.1: Role SuperAdmin & Middleware de Proteção [CONCLUÍDA ✅]
+- **Objetivo:** Adicionar rotas administrativas restritas e garantir que somente usuários com `role: 'superadmin'` acessem `/admin/*`.
+- **Entregáveis:**
+  * Guardas de rota em layouts administrativos que validem `session.user.role === 'superadmin'`.
+  * Rota de fallback segura de "Acesso Negado" (`/admin/unauthorized`).
+
+### Sub-Fase 9.2: Dashboard de Métricas SaaS Globais [CONCLUÍDA ✅]
+- **Objetivo:** Painel gerencial agregando os dados de todas as empresas do ecossistema SaaS.
+- **Entregáveis:**
+  * Métricas Brutalistas Dark de MRR (Receita Recorrente Mensal), Tenants Ativos, Projetos Totais e Peças Produzidas.
+  * Gráficos analíticos elegantes demonstrando taxa de crescimento de novos tenants e volumetria de importação de SketchUp.
+
+### Sub-Fase 9.3: Gestão de Inquilinos (Tenants CRUD & Planos) [CONCLUÍDA ✅]
+- **Objetivo:** Interface administrativa para listagem, alteração de status e planos de assinaturas das empresas.
+- **Entregáveis:**
+  * Painel `/admin/empresas` com listagem tabular de tenants.
+  * Modal administrativo para Ativar/Inativar empresa, alterar o plano (starter, pro, enterprise) e ajustar cotas de licenças corporativas.
+
+### Sub-Fase 9.4: Logs Globais de Rastreabilidade e Auditoria [CONCLUÍDA ✅]
+- **Objetivo:** Auditoria centralizada de eventos críticos ocorridos na plataforma.
+- **Entregáveis:**
+  * Visualização cronológica em tempo real de logs de auditoria (criação/exclusão de inquilinos, logins administrativos, etc.).
+
+Critérios de Aceite da Fase 9:
+- ✅ Somente SuperAdmin pode acessar o painel `/admin`.
+- ✅ Mudança de planos e cotas reflete nos limites dos inquilinos imediatamente.
+- ✅ Logs e auditorias salvos com integridade e rastreabilidade total.
+
+
 FIM DO ROADMAP DETALHADO
-Total: 8 Fases → 28 Sub-Fases
+Total: 9 Fases → 32 Sub-Fases
 Cada sub-fase é validável individualmente.

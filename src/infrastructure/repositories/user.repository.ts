@@ -17,6 +17,8 @@ export class UserRepository implements IUserRepository {
       passwordHash: dbUser.senhaHash,
       image: dbUser.image || null,
       active: dbUser.ativo,
+      role: dbUser.role,
+      empresaId: dbUser.empresaId,
       createdAt: dbUser.createdAt || new Date(),
       updatedAt: dbUser.updatedAt || new Date(),
     };
@@ -34,6 +36,8 @@ export class UserRepository implements IUserRepository {
       passwordHash: dbUser.senhaHash,
       image: dbUser.image || null,
       active: dbUser.ativo,
+      role: dbUser.role,
+      empresaId: dbUser.empresaId,
       createdAt: dbUser.createdAt || new Date(),
       updatedAt: dbUser.updatedAt || new Date(),
     };
@@ -61,6 +65,8 @@ export class UserRepository implements IUserRepository {
       passwordHash: dbUser.senhaHash,
       image: dbUser.image || null,
       active: dbUser.ativo,
+      role: dbUser.role,
+      empresaId: dbUser.empresaId,
       createdAt: dbUser.createdAt || new Date(),
       updatedAt: dbUser.updatedAt || new Date(),
     };

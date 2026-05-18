@@ -37,6 +37,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               id: "00000000-0000-0000-0000-000000000000",
               name: "Administrador Sandbox",
               email: "admin@marcenai.com",
+              role: "superadmin",
+              empresaId: "e0000000-0000-0000-0000-000000000000",
             };
           }
 
@@ -46,6 +48,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               id: "11111111-1111-1111-1111-111111111111",
               name: "Usuário Sandbox",
               email: email,
+              role: "user",
+              empresaId: "00000000-0000-0000-0000-000000000000",
             };
           }
         }
@@ -61,12 +65,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+        token.role = (user as any).role || 'user';
+        token.empresaId = (user as any).empresaId;
       }
       return token;
     },
     async session({ session, token }) {
       if (token?.id) {
         session.user.id = token.id as string;
+        session.user.role = token.role as string;
+        session.user.empresaId = token.empresaId as string;
       }
       return session;
     },
