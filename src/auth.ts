@@ -42,6 +42,27 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             };
           }
 
+          // Usuários oficiais para a Validação Operacional da D'Luxury Ambientes ( Semana 1-2 )
+          if (email === "jose@dluxury.com" && password === "jose123") {
+            return {
+              id: "d1111111-1111-1111-1111-111111111111",
+              name: "Jose (Admin D'Luxury)",
+              email: "jose@dluxury.com",
+              role: "admin",
+              empresaId: "d0000000-0000-0000-0000-000000000000",
+            };
+          }
+
+          if (email === "cunhado@dluxury.com" && password === "cunhado123") {
+            return {
+              id: "d2222222-2222-2222-2222-222222222222",
+              name: "Cunhado (Produção D'Luxury)",
+              email: "cunhado@dluxury.com",
+              role: "marceneiro",
+              empresaId: "d0000000-0000-0000-0000-000000000000",
+            };
+          }
+
           // Aceita qualquer e-mail e senha com tamanho mínimo na sandbox
           if (email && password.length >= 6) {
             return {

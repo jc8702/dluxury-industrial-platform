@@ -1,0 +1,12 @@
+Data,Projeto,TipoModulo,TempoManualMin,TempoSistemaMin,EconomiaPorcent,ErroEncontrado,DescricaoErro,PecaGeradaCorreta,Observacoes
+19/05/2026,Arm-001 (Exemplo),Suspenso 2 Portas,45,20,56%,Nao,Nenhum erro. Importou e gerou furos corretamente,Sim,Validação inicial perfeita.
+19/05/2026,Coz-001 (Exemplo),Balcao de Pia,120,60,50%,Sim,Furo de minifix deslocado 5mm na lateral esquerda,Parcial,Corrigido na engine física da marcenaria.
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
