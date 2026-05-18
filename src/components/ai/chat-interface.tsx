@@ -218,7 +218,7 @@ export default function ChatInterface() {
       <div className="px-6 py-4 border-t border-slate-800/85 bg-[#171B24]/20 backdrop-blur-md z-10">
         <form onSubmit={handleSubmit} className="flex items-center gap-3">
           <input
-            value={input}
+            value={input || ''}
             onChange={handleInputChange}
             placeholder={isLoading ? 'Aguarde o processamento...' : 'Digite sua dúvida de montagem ou engenharia...'}
             disabled={isLoading}
@@ -226,7 +226,7 @@ export default function ChatInterface() {
           />
           <Button
             type="submit"
-            disabled={isLoading || !input.trim()}
+            disabled={isLoading || !input?.trim()}
             className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold h-10 px-4 rounded-lg flex items-center justify-center shrink-0 cursor-pointer transition-all shadow-md shadow-cyan-500/10 border border-cyan-500/20 disabled:opacity-50"
           >
             <Send className="w-3.5 h-3.5" />
