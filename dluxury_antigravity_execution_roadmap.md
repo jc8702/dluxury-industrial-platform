@@ -2161,7 +2161,7 @@ Critérios de Aceite
  Chat usa contexto
 
 
-Sub-Fase 8.3: Tools - Function Calling (Consultar Projeto)
+Sub-Fase 8.3: Tools - Function Calling (Consultar Projeto) [CONCLUÍDA ✅]
 Objetivo
 Adicionar function calling para IA consultar dados do sistema.
 Prompt Antigravity
@@ -2285,10 +2285,10 @@ GERAR:
 - 10 exemplos conversação usando tools
 Critérios de Aceite
 
- Function calling funciona
- IA busca dados corretamente
- Respostas baseadas em dados reais
- UI mostra tool calls
+✅ Function calling funciona
+✅ IA busca dados corretamente
+✅ Respostas baseadas em dados reais
+✅ UI mostra tool calls
 
 
 VALIDAÇÃO FINAL DO MVP

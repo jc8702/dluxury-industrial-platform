@@ -4,10 +4,11 @@ import { SYSTEM_PROMPT } from '@/lib/ai/prompts';
 import { auth } from '@/auth';
 import { gerarEmbedding } from '@/lib/ai/embeddings';
 import { buscarContextoSemantico } from '@/lib/ai/retrieval';
+import { createAiTools } from '@/lib/ai/tools';
 
 /**
  * POST /api/chat
- * Endpoint seguro, autenticado e integrado com RAG (pgvector) que faz stream de respostas técnicas
+ * Endpoint seguro, autenticado e integrado com RAG e Function Calling protegidos por multi-tenancy
  */
 export async function POST(req: Request) {
   try {
@@ -30,7 +31,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 3. Obter ID da empresa (tenant) para isolamento absoluto RLS no RAG
+    // 3. Obter ID da empresa (tenant) para isolamento absoluto RLS no RAG e nas AI Tools
     const empresaId = session?.user?.empresaId;
     let promptDinamico = SYSTEM_PROMPT;
 
@@ -65,25 +66,28 @@ ${contextText}
           }
         }
       } catch (ragError) {
-        // Tolerância a falhas: Isolamos qualquer falha do RAG (como erros de embedding ou timeout do pgvector)
-        // para permitir que o chat geral de IA continue funcionando perfeitamente como fallback
         console.error('[RAG] Falha tolerada no pipeline de recuperação semântica:', ragError);
       }
     }
 
-    // 5. Executar o streaming de texto com Gemini 2.0 Flash enriquecido com RAG
+    // 5. Instanciar as ferramentas protegidas com isolamento multi-tenant
+    const tools = empresaId ? createAiTools(empresaId) : {};
+
+    // 6. Executar o streaming de texto com Gemini 2.0 Flash enriquecido com RAG e Function Calling
     const result = await streamText({
       model: model,
       system: promptDinamico,
       messages: messages,
-      temperature: 0.25, // Temperatura ligeiramente reduzida para alinhar com dados formais do RAG
+      temperature: 0.25, // Baixo para maior fidelidade e controle de respostas de engenharia
       maxTokens: 2000,
+      tools: tools,
+      maxSteps: 5, // Habilita a IA a encadear chamadas de ferramentas e consolidar as respostas de forma autônoma
     });
 
-    // 6. Retornar o stream binário de dados no formato padrão
+    // 7. Retornar o stream binário de dados no formato padrão do AI SDK
     return result.toDataStreamResponse();
   } catch (error: any) {
-    console.error('Erro na API de Chat IA com RAG:', error);
+    console.error('Erro na API de Chat IA com RAG e Tools:', error);
     return new Response(
       JSON.stringify({ success: false, error: error.message || 'Erro interno do servidor.' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }

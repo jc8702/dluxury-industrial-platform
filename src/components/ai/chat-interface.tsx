@@ -137,6 +137,40 @@ export default function ChatInterface() {
                   <div className="whitespace-pre-wrap font-sans text-slate-300">
                     {message.content}
                   </div>
+
+                  {/* Renderização de chamadas de ferramenta (Function Calling) */}
+                  {message.toolInvocations && message.toolInvocations.length > 0 && (
+                    <div className="mt-3 space-y-2 border-t border-slate-800/40 pt-2">
+                      {message.toolInvocations.map((toolInvocation) => {
+                        const { toolName, toolCallId, state } = toolInvocation;
+                        if (state === 'result') {
+                          return (
+                            <div
+                              key={toolCallId}
+                              className="p-2 bg-slate-950/50 border border-slate-800/80 rounded-lg font-mono text-[9px] space-y-1 text-slate-400"
+                            >
+                              <div className="flex items-center gap-1.5 text-cyan-400 font-extrabold uppercase tracking-widest">
+                                <Cpu className="w-3 h-3 animate-pulse" />
+                                <span>Core Tool: {toolName}</span>
+                              </div>
+                              <p className="text-slate-500 text-[8px] font-semibold">
+                                DADOS INTEGRADOS COM SUCESSO
+                              </p>
+                            </div>
+                          );
+                        }
+                        return (
+                          <div
+                            key={toolCallId}
+                            className="p-2 bg-slate-950/30 border border-slate-900 rounded-lg font-mono text-[9px] flex items-center gap-1.5 text-slate-500 animate-pulse"
+                          >
+                            <RefreshCw className="w-3 h-3 animate-spin" />
+                            <span>Consultando core técnico via {toolName}...</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
 
                 {/* Avatar do Usuário no lado direito */}
