@@ -1,5 +1,6 @@
 import { db } from '@/db';
-import { usoRecursos, planos, empresas } from '@/db/schema/saas';
+import { usoRecursos, planos } from '@/db/schema/saas';
+import { empresas } from '@/db/schema/empresas';
 import { eq, and } from 'drizzle-orm';
 import { redis } from '@/lib/ai/memory';
 import { format } from 'date-fns';

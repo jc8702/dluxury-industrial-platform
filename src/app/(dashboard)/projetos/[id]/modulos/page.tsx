@@ -7,7 +7,7 @@ import { pecas } from '@/db/schema/pecas';
 import { materiais } from '@/db/schema/materiais';
 import { eq, inArray } from 'drizzle-orm';
 import { notFound } from 'next/navigation';
-import { LayoutGrid, Cpu, Package, ArrowLeft, Layers, Compass } from 'lucide-react';
+import { LayoutGrid, Cpu, Package, ArrowLeft, Layers, Compass, FileDown, QrCode } from 'lucide-react';
 import Link from 'next/link';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -82,12 +82,34 @@ export default async function ProjetoModulosPage({ params }: PageProps) {
           </p>
         </div>
         
-        <Link href="/sketchup">
-          <Button className="bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:bg-slate-800 transition-all font-semibold text-sm">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Voltar para Importador
-          </Button>
-        </Link>
+        <div className="flex flex-wrap items-center gap-3">
+          <a
+            href={`/api/projetos/${projeto.id}/pdf`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-xs font-mono font-bold rounded-lg transition-all text-white border border-cyan-500/20 shadow-lg shadow-cyan-500/10 cursor-pointer"
+          >
+            <FileDown className="w-4 h-4" />
+            Exportar Lista BOM (PDF)
+          </a>
+
+          <a
+            href={`/api/projetos/${projeto.id}/labels`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 px-4 py-2 bg-[#1E202B] hover:bg-[#282B3B] text-xs font-mono font-bold rounded-lg transition-all text-cyan-400 border border-cyan-500/15 cursor-pointer"
+          >
+            <QrCode className="w-4 h-4" />
+            Imprimir Etiquetas
+          </a>
+
+          <Link href="/sketchup">
+            <Button className="bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:bg-slate-800 transition-all font-semibold text-sm">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Voltar para Importador
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {listAmbientes.length === 0 ? (

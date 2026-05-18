@@ -1,7 +1,8 @@
 'use server';
 
 import { db } from '@/db';
-import { empresas, usoRecursos } from '@/db/schema/saas';
+import { usoRecursos } from '@/db/schema/saas';
+import { empresas } from '@/db/schema/empresas';
 import { usuarios } from '@/db/schema/usuarios';
 import { logSecurityEvent } from '@/lib/auth/security-logs';
 import { v4 as uuidv4 } from 'uuid';
@@ -35,6 +36,7 @@ export async function provisionNewTenant(payload: OnboardingPayload) {
         empresaId: novaEmpresa.id,
         nome: payload.adminNome,
         email: payload.adminEmail,
+        senhaHash: '$2a$10$temporaryhashforonboardingunusableuntilresetpwd',
         role: 'admin',
         ativo: true,
       }).returning();
