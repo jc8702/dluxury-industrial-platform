@@ -5,13 +5,10 @@ import { fetchDashboardData } from '@/actions/dashboard';
 import { DashboardMetrics } from '@/lib/dashboard/metrics';
 import { getPusherClient } from '@/lib/realtime/pusher-client';
 import { BarChart, Bar, AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { TrendingUp, TrendingDown, AlertTriangle, Hammer, Factory, DollarSign, Calendar, Filter, ChevronDown } from 'lucide-react';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
-
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+import { AlertTriangle, Hammer, Factory, DollarSign, Calendar, Filter, ChevronDown } from 'lucide-react';
+import { SectionHeader } from '@/components/industrial/section-header';
+import { StatCard } from '@/components/industrial/stat-card';
+import { Button } from '@/components/ui/button';
 
 interface ExecutiveDashboardProps {
   empresaId: string;
@@ -42,10 +39,7 @@ export function ExecutiveDashboard({ empresaId, userRole }: ExecutiveDashboardPr
     if (pusher) {
       const channel = pusher.subscribe(`empresa-${empresaId}`);
       channel.bind('production_update', () => {
-        // Alerta não intrusivo ou Soft Refresh
         console.log('Realtime update recebido. Recarregando métricas operacionais...');
-        // Força atualização bypassando o cache do Redis (apenas para este client para não onerar db globalmente, 
-        // ou usa SWR/React Query no mundo real).
         loadMetrics(true);
       });
 
@@ -61,18 +55,20 @@ export function ExecutiveDashboard({ empresaId, userRole }: ExecutiveDashboardPr
 
   return (
     <div className="p-8 bg-[#0F1115] min-h-screen text-slate-200 font-sans">
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">Painel Industrial</h1>
-          <p className="text-slate-400 mt-1">Visão geral executiva da marcenaria</p>
-        </div>
-        <button 
-          onClick={() => loadMetrics(true)}
-          className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-all text-sm font-medium border border-slate-700"
-        >
-          Sincronizar Agora
-        </button>
-      </div>
+      
+      {/* Cabeçalho Industrial Reutilizável */}
+      <SectionHeader 
+        title="Painel Industrial"
+        description="Visão geral executiva da marcenaria"
+        action={
+          <Button 
+            variant="industrial"
+            onClick={() => loadMetrics(true)}
+          >
+            Sincronizar Agora
+          </Button>
+        }
+      />
 
       {/* Action Bar (Filters) */}
       <div className="flex items-center space-x-4 mb-8 bg-[#1A1D24] p-4 rounded-xl border border-slate-800">
@@ -92,34 +88,39 @@ export function ExecutiveDashboard({ empresaId, userRole }: ExecutiveDashboardPr
         </button>
       </div>
 
-      {/* KPIs Grid */}
+      {/* KPIs Grid - Utilizando os novos StatCards Reutilizáveis */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <KpiCard 
-          title="Faturamento" 
+        <StatCard 
+          label="Faturamento" 
           value={new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(data.faturamento.total)}
           trend={data.faturamento.growth}
-          icon={<DollarSign className="w-5 h-5 text-emerald-400" />}
+          icon={<DollarSign className="w-5 h-5" />}
+          variant="success"
         />
-        <KpiCard 
-          title="Produtividade (Peças/Dia)" 
-          value={data.produtividade.pecasDia.toString()}
+        <StatCard 
+          label="Produtividade" 
+          value={`${data.produtividade.pecasDia} peças/dia`}
           trend={data.produtividade.growth}
-          icon={<Factory className="w-5 h-5 text-blue-400" />}
+          icon={<Factory className="w-5 h-5" />}
+          variant="default"
         />
-        <KpiCard 
-          title="Taxa de Retrabalho" 
+        <StatCard 
+          label="Taxa de Retrabalho" 
           value={`${data.qualidade.retrabalhoPercent}%`}
-          trend={-1.2} // Retrabalho caindo é bom (inverted trend logic na ui)
-          icon={<Hammer className="w-5 h-5 text-orange-400" />}
+          trend={-1.2}
+          icon={<Hammer className="w-5 h-5" />}
+          variant="warning"
           invertTrendColor
         />
-        <KpiCard 
-          title="Alertas de Engenharia" 
+        <StatCard 
+          label="Alertas de Engenharia" 
           value={data.qualidade.erros.toString()}
           trend={0}
-          icon={<AlertTriangle className="w-5 h-5 text-red-400" />}
+          icon={<AlertTriangle className="w-5 h-5" />}
+          variant="danger"
         />
       </div>
+
 
       {/* Gráficos em Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -214,36 +215,3 @@ export function ExecutiveDashboard({ empresaId, userRole }: ExecutiveDashboardPr
   );
 }
 
-function KpiCard({ title, value, trend, icon, invertTrendColor = false }: { title: string, value: string, trend: number, icon: React.ReactNode, invertTrendColor?: boolean }) {
-  const isPositive = trend > 0;
-  const isNeutral = trend === 0;
-  
-  // Lógica de inversão de cor (Ex: Menos retrabalho é "positivo" visualmente, mas o trend é negativo)
-  let trendColor = isPositive ? 'text-emerald-400' : 'text-red-400';
-  if (invertTrendColor) {
-    trendColor = isPositive ? 'text-red-400' : 'text-emerald-400';
-  }
-  if (isNeutral) trendColor = 'text-slate-400';
-
-  return (
-    <div className="bg-[#1A1D24] border border-slate-800 p-6 rounded-xl shadow-sm flex flex-col justify-between">
-      <div className="flex justify-between items-start mb-4">
-        <h3 className="text-slate-400 font-medium text-sm">{title}</h3>
-        <div className="p-2 bg-slate-800/50 rounded-md">
-          {icon}
-        </div>
-      </div>
-      <div>
-        <h2 className="text-3xl font-bold text-white tracking-tight">{value}</h2>
-        <div className="flex items-center mt-2">
-          {!isNeutral && (
-            isPositive ? <TrendingUp className={cn("w-4 h-4 mr-1", trendColor)} /> : <TrendingDown className={cn("w-4 h-4 mr-1", trendColor)} />
-          )}
-          <span className={cn("text-sm font-medium", trendColor)}>
-            {isNeutral ? 'Estável' : `${Math.abs(trend)}% vs mês ant.`}
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-}

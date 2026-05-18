@@ -4,9 +4,9 @@ import type { NextAuthConfig } from 'next-auth';
 // as configurações de rotas e providers básicos aqui.
 export const authConfig = {
   pages: {
-    signIn: '/login', // Custom login page
-    error: '/login?error=auth', // Error code passed in query string as ?error=
-    verifyRequest: '/login?verifyRequest=true', // Used for check email message
+    signIn: '/auth/login', // Custom login page
+    error: '/auth/login?error=auth', // Error code passed in query string as ?error=
+    verifyRequest: '/auth/login?verifyRequest=true', // Used for check email message
   },
   callbacks: {
     // Middleware-level protection check
@@ -14,6 +14,7 @@ export const authConfig = {
       const isLoggedIn = !!auth?.user;
       const isApiAuthRoute = nextUrl.pathname.startsWith('/api/auth');
       const isPublicRoute = 
+        nextUrl.pathname === '/auth/login' || 
         nextUrl.pathname === '/login' || 
         nextUrl.pathname === '/forgot-password' || 
         nextUrl.pathname === '/register';
@@ -21,7 +22,7 @@ export const authConfig = {
       if (isApiAuthRoute) return true;
 
       if (!isLoggedIn && !isPublicRoute) {
-        return Response.redirect(new URL('/login', nextUrl));
+        return Response.redirect(new URL('/auth/login', nextUrl));
       }
 
       if (isLoggedIn && isPublicRoute) {
@@ -34,8 +35,8 @@ export const authConfig = {
     async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id;
-        token.role = user.role;
-        token.empresaId = user.empresaId;
+        token.role = (user as any).role;
+        token.empresaId = (user as any).empresaId;
       }
       
       // Update session if it changes
@@ -49,8 +50,8 @@ export const authConfig = {
     async session({ session, token }) {
       if (token && session.user) {
         session.user.id = token.id as string;
-        session.user.role = token.role as string;
-        session.user.empresaId = token.empresaId as string;
+        (session.user as any).role = token.role as string;
+        (session.user as any).empresaId = token.empresaId as string;
       }
       return session;
     },

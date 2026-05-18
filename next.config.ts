@@ -20,6 +20,5 @@ export default withSentryConfig(axiomConfig, {
   org: process.env.SENTRY_ORG,
   project: process.env.SENTRY_PROJECT,
   widenClientFileUpload: true,
-  hideSourceMaps: true, // Oculta source maps do cliente no production
   disableLogger: true,
 });

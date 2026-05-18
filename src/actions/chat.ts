@@ -1,10 +1,10 @@
 'use server';
 
-import { streamText, CoreMessage } from 'ai';
+import { streamText } from 'ai';
 import { google } from '@ai-sdk/google';
 import { retrieveTechnicalContext } from '@/lib/ai/retrieval';
 import { SYSTEM_PROMPT_MARCENAI } from '@/lib/ai/prompts';
-import { saveChatMemory, getChatMemory } from '@/lib/ai/memory';
+import { saveChatMemory, getChatMemory, CoreMessage } from '@/lib/ai/memory';
 
 export async function askIndustrialAI(
   chatId: string,
@@ -42,9 +42,8 @@ export async function askIndustrialAI(
   // 5. Configura e dispara o Gemini 2.5 Pro
   const result = await streamText({
     model: google('gemini-2.5-pro'),
-    messages,
+    messages: messages as any,
     temperature: 0.0, // Regra Crítica: 0 para máxima precisão técnica e zero alucinação
-    maxTokens: 1000,
   });
 
   // 6. Atualiza Memória Contextual de forma assíncrona usando 'onFinish' callback do frontend 
@@ -54,5 +53,5 @@ export async function askIndustrialAI(
   // NOTA: Em produção real com streamText, o saveChatMemory seria chamado
   // no client, ou usando o callback `onFinish` do useChat.
 
-  return result.toDataStreamResponse();
+  return result.toTextStreamResponse();
 }

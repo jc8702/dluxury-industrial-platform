@@ -13,7 +13,7 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Rotas públicas que não requerem autenticação
-  const publicRoutes = ['/login', '/register', '/forgot-password'];
+  const publicRoutes = ['/auth/login', '/login', '/register', '/forgot-password'];
   const isPublicRoute = publicRoutes.some((route) => pathname.startsWith(route));
   const isApiAuthRoute = pathname.startsWith('/api/auth');
   const isApiRoute = pathname.startsWith('/api/');
@@ -29,9 +29,14 @@ export function middleware(request: NextRequest) {
     );
   }
 
+  // Redireciona de /login antigo para /auth/login para evitar 404
+  if (pathname === '/login') {
+    return NextResponse.redirect(new URL('/auth/login', request.url));
+  }
+
   // Redireciona não autenticado para login
   if (!sessionToken && !isPublicRoute) {
-    return NextResponse.redirect(new URL('/login', request.url));
+    return NextResponse.redirect(new URL('/auth/login', request.url));
   }
 
   // Redireciona autenticado para dashboard se tentar acessar rota pública

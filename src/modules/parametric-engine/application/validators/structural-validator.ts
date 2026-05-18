@@ -1,4 +1,4 @@
-import { SketchupModuleData } from '../domain/types';
+import { SketchupModuleData } from '../../domain/types';
 
 export class StructuralValidator {
   private errors: string[] = [];

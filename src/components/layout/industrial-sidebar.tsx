@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Cuboid, Wrench, FileCheck2, Settings, ChevronLeft, ChevronRight, Bot } from 'lucide-react';
+import { LayoutDashboard, Wrench, FileCheck2, Settings, ChevronLeft, ChevronRight, DollarSign, FolderOpen, Users, Cuboid } from 'lucide-react';
 import { useAppStore } from '@/stores/app-store';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -17,11 +17,12 @@ export function IndustrialSidebar() {
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'SketchUp Sync', href: '/sketchup', icon: Cuboid },
     { name: 'Engenharia & BOM', href: '/engenharia', icon: FileCheck2 },
     { name: 'Produção (CNC)', href: '/producao', icon: Wrench },
-    { name: 'Assistente IA', href: '/ai', icon: Bot },
-    { name: 'Configurações', href: '/settings', icon: Settings },
+    { name: 'Comercial & Vendas', href: '/comercial', icon: DollarSign },
+    { name: 'Projetos', href: '/projetos', icon: FolderOpen },
+    { name: 'Clientes', href: '/clientes', icon: Users },
+    { name: 'Configurações', href: '/configuracoes', icon: Settings },
   ];
 
   return (
