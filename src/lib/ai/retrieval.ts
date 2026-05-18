@@ -1,66 +1,53 @@
-import { embed, embedMany } from 'ai';
-import { google } from '@ai-sdk/google';
+import { sql } from 'drizzle-orm';
 import { db } from '@/db';
-import { embeddingsIa } from '@/db/schema/embeddings';
-import { cosineDistance, desc, sql } from 'drizzle-orm';
+import { embeddingsIa } from '@/db/schema';
 
-// O modelo recomendado pelo Google para geração de vetores atualmente
-const embeddingModel = google.textEmbeddingModel('text-embedding-004');
-
-export async function generateEmbedding(text: string) {
-  const { embedding } = await embed({
-    model: embeddingModel,
-    value: text,
-  });
-  return embedding;
-}
-
-export async function generateEmbeddings(texts: string[]) {
-  const { embeddings } = await embedMany({
-    model: embeddingModel,
-    values: texts,
-  });
-  return embeddings;
-}
-
-export interface RetrievalOptions {
-  empresaId: string;
-  entidadeTipo?: string; // Filtrar por 'manual', 'peca', 'ferragem'
-  limit?: number;
-  similarityThreshold?: number;
+export interface ContextoResultado {
+  conteudoTexto: string;
+  entidadeTipo: string;
+  entidadeId: string;
+  similarity: number;
 }
 
 /**
- * RAG Pipeline: Recupera contexto técnico do banco de dados vetorial (pgvector)
- * usando a distância coseno (HNSW index) e previne alucinações.
+ * Realiza uma busca semântica de similaridade de cosseno usando pgvector no Neon Postgres.
+ * Garante o isolamento multi-tenant obrigatório validando pelo empresaId.
+ * 
+ * @param empresaId ID da empresa proprietária dos dados (Isolamento RLS/SaaS)
+ * @param embedding Vetor de 768 dimensões gerado pelo Gemini
+ * @param limit Limite máximo de blocos de contexto retornados
+ * @param minSimilarity Limiar mínimo de similaridade de cosseno (de 0.0 a 1.0)
  */
-export async function retrieveTechnicalContext(
-  query: string, 
-  options: RetrievalOptions
-) {
-  const queryEmbedding = await generateEmbedding(query);
-  const similarity = sql<number>`1 - (${cosineDistance(
-    embeddingsIa.embedding,
-    queryEmbedding
-  )})`;
+export async function buscarContextoSemantico(
+  empresaId: string,
+  embedding: number[],
+  limit = 4,
+  minSimilarity = 0.65
+): Promise<ContextoResultado[]> {
+  try {
+    // 1. Converter a array de float em uma string formatada de vetor para o Postgres: "[0.12, 0.34, ...]"
+    const vectorStr = `[${embedding.join(',')}]`;
+    const maxDistance = 1 - minSimilarity;
 
-  // Define limite mínimo de similaridade rigoroso para contexto técnico
-  const threshold = options.similarityThreshold || 0.75;
+    // 2. Executar a query de similaridade de cosseno (operador <=> do pgvector)
+    const results = await db
+      .select({
+        conteudoTexto: embeddingsIa.conteudoTexto,
+        entidadeTipo: embeddingsIa.entidadeTipo,
+        entidadeId: embeddingsIa.entidadeId,
+        similarity: sql<number>`1 - (${embeddingsIa.embedding} <=> ${vectorStr}::vector)`,
+      })
+      .from(embeddingsIa)
+      .where(
+        sql`${embeddingsIa.empresaId} = ${empresaId} 
+        AND (${embeddingsIa.embedding} <=> ${vectorStr}::vector) <= ${maxDistance}`
+      )
+      .orderBy(sql`${embeddingsIa.embedding} <=> ${vectorStr}::vector`)
+      .limit(limit);
 
-  const results = await db
-    .select({
-      id: embeddingsIa.id,
-      entidadeTipo: embeddingsIa.entidadeTipo,
-      conteudo: embeddingsIa.conteudoTexto,
-      similarity,
-    })
-    .from(embeddingsIa)
-    .where(
-      sql`${embeddingsIa.empresaId} = ${options.empresaId} AND ${similarity} > ${threshold}`
-      // Pode-se adicionar dinamicamente o filtro de entidade_tipo se preenchido
-    )
-    .orderBy(desc(similarity))
-    .limit(options.limit || 5);
-
-  return results.map((r) => r.conteudo).join('\n\n---\n\n');
+    return results as ContextoResultado[];
+  } catch (error) {
+    console.error('Erro na busca semântica RAG (pgvector):', error);
+    return []; // Retorna lista vazia preventivamente para evitar travar o fluxo de chat
+  }
 }
