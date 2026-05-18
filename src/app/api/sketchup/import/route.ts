@@ -83,7 +83,6 @@ export async function POST(req: NextRequest) {
           projetoId,
           nome: ambiente_nome,
           tipo: "cozinha",
-          empresaId,
         })
         .returning();
       ambienteId = novoAmbiente[0].id;
@@ -147,7 +146,6 @@ export async function POST(req: NextRequest) {
           largura: mod.largura.toString(),
           altura: mod.altura.toString(),
           profundidade: mod.profundidade.toString(),
-          empresaId,
         })
         .returning();
 
@@ -174,7 +172,6 @@ export async function POST(req: NextRequest) {
           largura: p.largura.toString(),
           espessura: "18.00",
           quantidade: "1",
-          empresaId,
         });
       }
 

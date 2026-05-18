@@ -51,8 +51,6 @@ export async function processParametricModule(
       altura: compositionResult.parameters['A'],
       profundidade: compositionResult.parameters['P'],
       parametrosIniciais: compositionResult.parameters,
-      // Fakes temporários
-      empresaId: '00000000-0000-0000-0000-000000000000', // Pego do auth de fato
     }).returning();
 
     // Persiste a lista de Peças baseadas no cálculo em Batch
