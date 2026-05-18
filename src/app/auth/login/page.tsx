@@ -18,20 +18,20 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      // Simulação rápida para propósitos de demonstração (ou redirecionamento se der sucesso)
-      // Em produção, isso chama a API do NextAuth.ts:
-      // const res = await signIn('credentials', { email, password, redirect: false });
+      const res = await signIn('credentials', {
+        email,
+        password,
+        redirect: false,
+      });
       
-      if (email === 'admin@marcenai.com' && password === 'admin123') {
-        router.push('/dashboard');
-      } else if (email && password) {
-        // Aceita qualquer e-mail/senha mock para fins de sandbox do desenvolvedor, eliminando 404
-        router.push('/dashboard');
+      if (res?.error) {
+        setError('Credenciais inválidas. Verifique seu e-mail e senha.');
       } else {
-        setError('Por favor, preencha todos os campos corretamente.');
+        router.push('/dashboard');
+        router.refresh();
       }
     } catch (err) {
-      setError('Credenciais inválidas. Tente novamente.');
+      setError('Erro ao se conectar ao servidor de autenticação. Tente novamente.');
     } finally {
       setLoading(false);
     }
