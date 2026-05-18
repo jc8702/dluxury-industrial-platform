@@ -1671,7 +1671,7 @@ Critérios de Aceite
  Viewer mostra composição
 
 
-FASE 7 — PDF PRODUÇÃO
+FASE 7 — PDF PRODUÇÃO [CONCLUÍDA ✅]
 Sub-Fase 7.1: Lista de Peças (PDF)
 Objetivo
 Gerar PDF profissional com lista de peças para produção.
@@ -1775,10 +1775,10 @@ GERAR:
 - Screenshot mockup do PDF
 Critérios de Aceite
 
- PDF gera sem erros
- Tabela peças completa
- Download funciona
- Layout profissional
+✅ PDF gera sem erros
+✅ Tabela peças completa
+✅ Download funciona
+✅ Layout profissional
 
 
 Sub-Fase 7.2: Etiquetas com QRCode
@@ -1885,10 +1885,10 @@ GERAR:
 - Grid layout CSS/PDF
 Critérios de Aceite
 
- PDF etiquetas gera OK
- QRCode escaneável
- Grid 2x5 correto
- Texto legível
+✅ PDF etiquetas gera OK
+✅ QRCode escaneável
+✅ Grid 2x5 correto
+✅ Texto legível
 
 
 FASE 8 — IA GEMINI

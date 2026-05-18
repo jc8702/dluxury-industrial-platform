@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Wrench, FileCheck2, Settings, ChevronLeft, ChevronRight, DollarSign, FolderOpen, Users, Cuboid } from 'lucide-react';
+import { LayoutDashboard, Wrench, FileCheck2, Settings, ChevronLeft, ChevronRight, DollarSign, FolderOpen, Users, Cuboid, Cpu } from 'lucide-react';
 import { useAppStore } from '@/stores/app-store';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -22,6 +22,7 @@ export function IndustrialSidebar() {
     { name: 'Comercial & Vendas', href: '/comercial', icon: DollarSign },
     { name: 'Projetos', href: '/projetos', icon: FolderOpen },
     { name: 'Clientes', href: '/clientes', icon: Users },
+    { name: 'Assistente IA', href: '/assistente', icon: Cpu },
     { name: 'Configurações', href: '/configuracoes', icon: Settings },
   ];
 
