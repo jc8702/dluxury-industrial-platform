@@ -1,3 +1,5 @@
+'use client';
+
 import { useAppStore } from '@/stores/app-store';
 import { Search, Bell, ChevronRight } from 'lucide-react';
 import { usePathname } from 'next/navigation';

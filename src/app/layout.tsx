@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import { ThemeProvider } from '@/components/providers/theme-provider';
+import { Providers } from '@/components/providers/Providers';
 import { AxiomWebVitals } from 'next-axiom';
 import './globals.css';
 
@@ -15,11 +15,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <body className={`${inter.variable} font-sans antialiased bg-[#0F1115] text-slate-200 min-h-screen`}>
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+        <Providers>
           <AxiomWebVitals />
           {children}
-        </ThemeProvider>
+        </Providers>
       </body>
     </html>
   );
 }
+
