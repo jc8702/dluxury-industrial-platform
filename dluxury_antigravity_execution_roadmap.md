@@ -1,4 +1,173 @@
+FASE 1 — CORE FOUNDATION
+Sub-Fase 1.1: Scaffold Mínimo Next.js
+Objetivo
+Criar estrutura Next.js 15 funcional com TypeScript e validar deploy.
+Prompt Antigravity
+CONTEXTO:
+Você é um arquiteto Next.js 15 especialista em App Router e TypeScript strict.
 
+OBJETIVO:
+Criar estrutura Next.js 15 mínima, limpa e pronta para escalar.
+
+STACK OBRIGATÓRIA:
+- Next.js 15.1+ (App Router)
+- TypeScript 5.3+ (strict mode)
+- Vercel Deploy
+
+ESTRUTURA BASE:
+/app
+  /layout.tsx
+  /page.tsx
+  /api
+    /health/route.ts
+/lib
+  /env.ts (validação zod)
+/types
+  /index.ts
+
+REQUISITOS CRÍTICOS:
+1. Criar página inicial com "D'Luxury Industrial Platform"
+2. Criar endpoint /api/health que retorna { status: "ok", timestamp, version }
+3. Configurar TypeScript strict mode (noImplicitAny, strictNullChecks)
+4. Configurar variáveis ambiente com validação Zod
+5. Adicionar metadata SEO básica
+
+ARQUIVOS ESPECÍFICOS:
+
+next.config.ts:
+- output: standalone
+- reactStrictMode: true
+- typescript: { ignoreBuildErrors: false }
+
+tsconfig.json:
+- strict: true
+- baseUrl: "."
+- paths: { "@/*": ["./*"] }
+
+.env.example:
+- NODE_ENV
+- VERCEL_URL
+- DATABASE_URL (placeholder)
+
+package.json:
+- "type": "module"
+- scripts: dev, build, start, lint, type-check
+
+NÃO INCLUIR AINDA:
+- Tailwind
+- shadcn/ui
+- Auth
+- Database
+- Redis
+
+VALIDAÇÃO:
+- npm run build deve passar sem erros
+- npm run type-check deve passar 100%
+- /api/health deve retornar JSON válido
+- Deploy Vercel deve funcionar
+
+GERAR:
+- Código completo de todos os arquivos
+- README.md com comandos setup
+- .gitignore configurado
+Critérios de Aceite
+
+ npm run build passa sem warnings
+ npm run type-check sem erros
+ Deploy Vercel OK
+ /api/health retorna 200 + JSON
+ Página inicial renderiza corretamente
+
+
+Sub-Fase 1.2: Tailwind + Design System Base
+Objetivo
+Configurar Tailwind com tema industrial e validar responsividade.
+Prompt Antigravity
+CONTEXTO:
+Sistema SaaS industrial para marcenaria planejada.
+Stack atual: Next.js 15 + TypeScript (já funcionando).
+
+OBJETIVO:
+Adicionar Tailwind CSS com tema industrial profissional.
+
+DESIGN SYSTEM BASE:
+- Paleta escura industrial (grays, blues metálicos)
+- Typography scale hierárquica
+- Spacing consistente
+- Responsivo mobile-first
+
+IMPLEMENTAR:
+
+1. Instalação Tailwind:
+   - tailwindcss
+   - postcss
+   - autoprefixer
+
+2. Configuração tailwind.config.ts:
+   - darkMode: 'class'
+   - theme.extend.colors:
+     * primary: azul industrial (#0A4D8C)
+     * secondary: cinza metálico (#64748B)
+     * accent: laranja engenharia (#F97316)
+     * background: (#0F172A, #1E293B)
+     * surface: (#1E293B, #334155)
+   - theme.extend.fontFamily:
+     * sans: Inter, system-ui
+     * mono: 'JetBrains Mono', monospace
+
+3. Criar /app/globals.css:
+   - @tailwind directives
+   - CSS variables para theme switching
+   - Reset básico
+
+4. Criar /components/ui/typography.tsx:
+   - H1, H2, H3 (estilos industriais)
+   - Paragraph, Small, Code
+   - Props: variant, className
+
+5. Atualizar /app/page.tsx:
+   - Usar componentes typography
+   - Layout responsivo 3 colunas (lg:grid-cols-3)
+   - Testar dark/light toggle manual
+
+VALIDAÇÃO:
+- Página deve ser 100% responsiva (320px - 1920px)
+- Theme toggle deve funcionar
+- Tipografia deve escalar corretamente
+- Build não deve ter warnings
+
+NÃO ADICIONAR:
+- shadcn/ui (próxima fase)
+- Componentes complexos
+- Animações elaboradas
+
+GERAR:
+- Código completo
+- Screenshot mockup ASCII da página
+Critérios de Aceite
+
+ Tailwind funcionando
+ Tema dark/light toggle manual OK
+ Responsivo mobile/tablet/desktop
+ Typography escalável
+
+
+Sub-Fase 1.3: shadcn/ui + Componentes Base
+Objetivo
+Instalar shadcn/ui e criar componentes industriais reutilizáveis.
+Prompt Antigravity
+CONTEXTO:
+Sistema industrial Next.js 15 com Tailwind já configurado.
+Paleta: industrial dark (#0F172A, #0A4D8C, #F97316).
+
+OBJETIVO:
+Configurar shadcn/ui e criar componentes industriais base.
+
+STACK:
+- shadcn/ui (latest)
+- Radix UI
+- class-variance-authority
+- clsx + tailwind-merge
 
 IMPLEMENTAR:
 
