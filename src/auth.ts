@@ -70,7 +70,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               name: "Usuário Sandbox",
               email: email,
               role: "user",
-              empresaId: "00000000-0000-0000-0000-000000000000",
+              empresaId: "e0000000-0000-0000-0000-000000000000",
             };
           }
         }
