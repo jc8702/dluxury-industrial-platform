@@ -10,13 +10,12 @@ import { revalidatePath } from 'next/cache';
 export async function getProjetos(searchTerm?: string) {
   const session = await auth();
   if (!session?.user?.empresaId) {
-    throw new Error('Não autenticado');
+    return [];
   }
 
   const empresaId = session.user.empresaId;
 
   try {
-    // Busca projetos trazendo o nome do cliente associado
     let queryResult;
     if (searchTerm) {
       queryResult = await db
@@ -29,7 +28,7 @@ export async function getProjetos(searchTerm?: string) {
           valorTotal: projetos.valorTotal,
           dataEntrega: projetos.dataEntrega,
           notas: projetos.notas,
-          criadoEm: projetos.criadoEm,
+          criadoEm: projetos.createdAt,
         })
         .from(projetos)
         .innerJoin(clientes, eq(projetos.clienteId, clientes.id))
@@ -53,7 +52,7 @@ export async function getProjetos(searchTerm?: string) {
           valorTotal: projetos.valorTotal,
           dataEntrega: projetos.dataEntrega,
           notas: projetos.notas,
-          criadoEm: projetos.criadoEm,
+          criadoEm: projetos.createdAt,
         })
         .from(projetos)
         .innerJoin(clientes, eq(projetos.clienteId, clientes.id))
@@ -77,7 +76,7 @@ export async function createProjeto(dados: {
 }) {
   const session = await auth();
   if (!session?.user?.empresaId) {
-    throw new Error('Não autenticado');
+    return { success: false, error: 'Sessão expirada. Faça login novamente.' };
   }
 
   const empresaId = session.user.empresaId;
@@ -93,7 +92,6 @@ export async function createProjeto(dados: {
         valorTotal: dados.valorTotal ? dados.valorTotal.toString() : null,
         dataEntrega: dados.dataEntrega || null,
         notas: dados.notas || null,
-        criadoPor: session.user.id || null,
       })
       .returning();
 
@@ -101,6 +99,6 @@ export async function createProjeto(dados: {
     return { success: true, data: novoProjeto };
   } catch (error: any) {
     console.error('Erro ao criar projeto no Neon:', error);
-    return { success: false, error: error.message || 'Erro desconhecido' };
+    return { success: false, error: 'Erro ao criar projeto. Verifique se o cliente selecionado é válido e tente novamente.' };
   }
 }

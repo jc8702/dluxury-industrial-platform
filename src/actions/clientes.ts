@@ -9,7 +9,7 @@ import { revalidatePath } from 'next/cache';
 export async function getClientes(searchTerm?: string) {
   const session = await auth();
   if (!session?.user?.empresaId) {
-    throw new Error('Não autenticado');
+    return [];
   }
 
   const empresaId = session.user.empresaId;
@@ -50,7 +50,7 @@ export async function createCliente(dados: {
 }) {
   const session = await auth();
   if (!session?.user?.empresaId) {
-    throw new Error('Não autenticado');
+    return { success: false, error: 'Sessão expirada. Faça login novamente.' };
   }
 
   const empresaId = session.user.empresaId;
@@ -65,7 +65,6 @@ export async function createCliente(dados: {
         email: dados.email || null,
         telefone: dados.telefone || null,
         endereco: dados.endereco || null,
-        criadoPor: session.user.id || null,
       })
       .returning();
 
@@ -73,6 +72,7 @@ export async function createCliente(dados: {
     return { success: true, data: novoCliente };
   } catch (error: any) {
     console.error('Erro ao criar cliente no Neon:', error);
-    return { success: false, error: error.message || 'Erro desconhecido' };
+    // NUNCA expor SQL raw ao usuário
+    return { success: false, error: 'Erro ao salvar cliente. Verifique se sua sessão está ativa e tente novamente.' };
   }
 }

@@ -1,11 +1,65 @@
 'use client';
 
-import React, { useState } from 'react';
-import { ChevronRight, Settings, ShieldAlert, KeyRound, HardDrive, Factory, Building, Save } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ChevronRight, Settings, ShieldAlert, KeyRound, HardDrive, Factory, Building, Save, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { getEmpresaConfig, updateEmpresaConfig } from '@/actions/configuracoes';
 
 export default function ConfiguracoesPage() {
   const [activeTab, setActiveTab] = useState<'geral' | 'fabrica' | 'r2'>('geral');
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
+
+  const [razaoSocial, setRazaoSocial] = useState('');
+  const [cnpj, setCnpj] = useState('');
+  const [tenantId, setTenantId] = useState('');
+
+  useEffect(() => {
+    async function loadData() {
+      setIsLoading(true);
+      try {
+        const empresa = await getEmpresaConfig();
+        if (empresa) {
+          setRazaoSocial(empresa.razaoSocial || '');
+          setCnpj(empresa.cnpj || '');
+          setTenantId(empresa.id || '');
+        }
+      } catch (error) {
+        console.error('Erro ao carregar dados da empresa:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadData();
+  }, []);
+
+  const handleSave = async () => {
+    if (activeTab !== 'geral') {
+      setSuccessMsg('Configurações salvas localmente (mock).');
+      setTimeout(() => setSuccessMsg(''), 2000);
+      return;
+    }
+
+    setIsSubmitting(true);
+    setErrorMsg('');
+    setSuccessMsg('');
+
+    try {
+      const res = await updateEmpresaConfig({ razaoSocial, cnpj });
+      if (res.success) {
+        setSuccessMsg('Conta da empresa atualizada com sucesso!');
+        setTimeout(() => setSuccessMsg(''), 2500);
+      } else {
+        setErrorMsg(res.error || 'Erro ao salvar configurações.');
+      }
+    } catch (err) {
+      setErrorMsg('Erro inesperado. Tente novamente.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="p-8 bg-[#0F1115] min-h-screen text-slate-200 font-sans">
@@ -24,10 +78,17 @@ export default function ConfiguracoesPage() {
           <h1 className="text-3xl font-bold text-white tracking-tight">Configurações do Sistema</h1>
           <p className="text-slate-400 mt-1">Gerencie chaves R2, margens operacionais de fábrica, controle de acesso e tokens.</p>
         </div>
-        <button className="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-all text-sm font-semibold shadow-md shadow-blue-600/15">
-          <Save className="w-4 h-4 mr-2" /> Salvar Alterações
+        <button 
+          onClick={handleSave}
+          disabled={isLoading || isSubmitting}
+          className="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-all text-sm font-semibold shadow-md shadow-blue-600/15 disabled:opacity-50"
+        >
+          {isSubmitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Salvando...</> : <><Save className="w-4 h-4 mr-2" /> Salvar Alterações</>}
         </button>
       </div>
+
+      {errorMsg && <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 text-red-400 text-sm rounded-lg">{errorMsg}</div>}
+      {successMsg && <div className="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm rounded-lg">{successMsg}</div>}
 
       {/* Main Container */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -61,7 +122,12 @@ export default function ConfiguracoesPage() {
 
         {/* Configurations Form Panel */}
         <div className="lg:col-span-3 bg-[#1A1D24] border border-slate-800 rounded-xl p-8 shadow-sm">
-          {activeTab === 'geral' && (
+          {isLoading ? (
+             <div className="flex flex-col items-center justify-center py-12 text-slate-400">
+               <Loader2 className="w-8 h-8 text-blue-500 animate-spin mb-4" />
+               <p>Carregando configurações...</p>
+             </div>
+          ) : activeTab === 'geral' && (
             <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-semibold text-white mb-1">Informações do Tenant</h3>
@@ -71,16 +137,31 @@ export default function ConfiguracoesPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-800/80">
                 <div className="flex flex-col">
                   <label className="text-xs font-semibold text-slate-400 mb-2">Razão Social</label>
-                  <input type="text" defaultValue="Marcenaria D'Luxury LTDA" className="px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-lg text-sm text-slate-200 focus:outline-none focus:border-blue-500" />
+                  <input 
+                    type="text" 
+                    value={razaoSocial} 
+                    onChange={(e) => setRazaoSocial(e.target.value)}
+                    className="px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-lg text-sm text-slate-200 focus:outline-none focus:border-blue-500" 
+                  />
                 </div>
                 <div className="flex flex-col">
                   <label className="text-xs font-semibold text-slate-400 mb-2">CNPJ</label>
-                  <input type="text" defaultValue="12.345.678/0001-90" className="px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-lg text-sm text-slate-200 focus:outline-none focus:border-blue-500" />
+                  <input 
+                    type="text" 
+                    value={cnpj} 
+                    onChange={(e) => setCnpj(e.target.value)}
+                    className="px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-lg text-sm text-slate-200 focus:outline-none focus:border-blue-500" 
+                  />
                 </div>
                 <div className="flex flex-col md:col-span-2">
                   <label className="text-xs font-semibold text-slate-400 mb-2">Tenant ID (Global Unique Key)</label>
                   <div className="relative">
-                    <input type="text" readOnly defaultValue="7e7811d7-bfd3-4fc6-b250-9ce068d374ce" className="w-full pl-4 pr-12 py-2.5 bg-slate-900/60 border border-slate-800 rounded-lg text-xs font-mono text-slate-500 select-all focus:outline-none" />
+                    <input 
+                      type="text" 
+                      readOnly 
+                      value={tenantId} 
+                      className="w-full pl-4 pr-12 py-2.5 bg-slate-900/60 border border-slate-800 rounded-lg text-xs font-mono text-slate-500 select-all focus:outline-none" 
+                    />
                     <KeyRound className="w-4 h-4 text-slate-600 absolute right-4 top-1/2 -translate-y-1/2" />
                   </div>
                 </div>
@@ -88,7 +169,7 @@ export default function ConfiguracoesPage() {
             </div>
           )}
 
-          {activeTab === 'fabrica' && (
+          {activeTab === 'fabrica' && !isLoading && (
             <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-semibold text-white mb-1">Calibração do Chão de Fábrica</h3>
@@ -116,7 +197,7 @@ export default function ConfiguracoesPage() {
             </div>
           )}
 
-          {activeTab === 'r2' && (
+          {activeTab === 'r2' && !isLoading && (
             <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-semibold text-white mb-1">Armazenamento Cloudflare R2</h3>

@@ -63,16 +63,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             };
           }
 
-          // Aceita qualquer e-mail e senha com tamanho mínimo na sandbox
-          if (email && password.length >= 6) {
-            return {
-              id: "11111111-1111-1111-1111-111111111111",
-              name: "Usuário Sandbox",
-              email: email,
-              role: "user",
-              empresaId: "e0000000-0000-0000-0000-000000000000",
-            };
-          }
+          // Fallback removido por segurança — apenas usuários cadastrados acima são aceitos
         }
 
         return null;

@@ -1,9 +1,18 @@
+import { auth } from '@/auth';
+import { redirect } from 'next/navigation';
 import { ExecutiveDashboard } from '@/components/dashboard/ExecutiveDashboard';
 
-export default function DashboardPage() {
-  // Num cenário real, o auth() forneceria o Tenant e Role
-  const mockTenant = '7e7811d7-bfd3-4fc6-b250-9ce068d374ce';
-  const mockRole = 'admin';
+export default async function DashboardPage() {
+  const session = await auth();
 
-  return <ExecutiveDashboard empresaId={mockTenant} userRole={mockRole} />;
+  if (!session?.user?.empresaId) {
+    redirect('/auth/login');
+  }
+
+  return (
+    <ExecutiveDashboard
+      empresaId={session.user.empresaId}
+      userRole={session.user.role || 'user'}
+    />
+  );
 }
