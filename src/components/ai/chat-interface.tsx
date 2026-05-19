@@ -33,11 +33,11 @@ export default function ChatInterface() {
   return (
     <Card className="bg-[#13161C] border-slate-800/80 flex flex-col h-[70vh] w-full shadow-2xl relative overflow-hidden rounded-xl border">
       {/* Decoração sutil de engenharia no fundo */}
-      <div className="absolute top-0 right-0 w-80 h-80 bg-blue-500/5 rounded-full blur-[100px] pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-80 h-80 bg-cyan-500/5 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute top-0 right-0 w-80 h-80 bg-blue-500/5 rounded-full blur-[100px] pointer-events-none z-0" />
+      <div className="absolute bottom-0 left-0 w-80 h-80 bg-cyan-500/5 rounded-full blur-[100px] pointer-events-none z-0" />
 
       {/* Header do Assistente */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800/85 bg-[#171B24]/40 backdrop-blur-md z-10">
+      <div className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-slate-800/85 bg-[#171B24]/40 backdrop-blur-md">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-600 to-blue-600 flex items-center justify-center border border-cyan-500/20 shadow-lg shadow-cyan-500/10 animate-pulse-subtle">
             <Cpu className="w-5 h-5 text-white" />
@@ -61,7 +61,7 @@ export default function ChatInterface() {
             onClick={() => reload()}
             variant="ghost"
             size="icon"
-            className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg cursor-pointer"
+            className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg cursor-pointer relative z-20"
             title="Refazer última resposta"
           >
             <RefreshCw className="w-3.5 h-3.5" />
@@ -70,7 +70,7 @@ export default function ChatInterface() {
       </div>
 
       {/* Área de Mensagens */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent">
+      <div className="relative z-10 flex-1 overflow-y-auto p-6 space-y-6 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent">
         {messages.length === 0 ? (
           // Estado Vazio: Apresenta as boas-vindas e as sugestões rápidas
           <div className="flex flex-col items-center justify-center h-full text-center max-w-xl mx-auto space-y-6 py-8">
@@ -85,17 +85,17 @@ export default function ChatInterface() {
             </div>
 
             {/* Grid de Sugestões rápidas */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full pt-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full pt-4 relative z-20">
               {SUGGESTIONS.map((sug, idx) => (
                 <button
                   key={idx}
                   onClick={() => handleSuggestionClick(sug.text)}
-                  className="flex flex-col items-start p-3 bg-[#1A1D24] hover:bg-[#222731] border border-slate-800/80 hover:border-cyan-500/20 text-left rounded-lg transition-all cursor-pointer group text-xs text-slate-400 hover:text-white"
+                  className="flex flex-col items-start p-3 bg-[#1A1D24] hover:bg-[#222731] border border-slate-800/80 hover:border-cyan-500/20 text-left rounded-lg transition-all cursor-pointer group text-xs text-slate-400 hover:text-white relative z-20"
                 >
-                  <span className="font-mono text-[9px] text-cyan-500 tracking-wider font-extrabold uppercase mb-1">
+                  <span className="font-mono text-[9px] text-cyan-500 tracking-wider font-extrabold uppercase mb-1 pointer-events-none">
                     {sug.label}
                   </span>
-                  <span className="line-clamp-2 leading-relaxed">
+                  <span className="line-clamp-2 leading-relaxed pointer-events-none">
                     {sug.text}
                   </span>
                 </button>
@@ -215,19 +215,19 @@ export default function ChatInterface() {
       </div>
 
       {/* Painel e Input de Digitação */}
-      <div className="px-6 py-4 border-t border-slate-800/85 bg-[#171B24]/20 backdrop-blur-md z-10">
+      <div className="relative z-20 px-6 py-4 border-t border-slate-800/85 bg-[#171B24]/20 backdrop-blur-md">
         <form onSubmit={handleSubmit} className="flex items-center gap-3">
           <input
             value={input || ''}
             onChange={handleInputChange}
             placeholder={isLoading ? 'Aguarde o processamento...' : 'Digite sua dúvida de montagem ou engenharia...'}
             disabled={isLoading}
-            className="flex-1 bg-slate-950/80 hover:bg-slate-950 border border-slate-800 hover:border-slate-700/80 focus:border-cyan-600 focus:outline-none text-slate-100 placeholder-slate-600 rounded-lg px-4 py-3 text-xs transition-all font-sans disabled:opacity-50"
+            className="flex-1 bg-slate-950/80 hover:bg-slate-950 border border-slate-800 hover:border-slate-700/80 focus:border-cyan-600 focus:outline-none text-slate-100 placeholder-slate-600 rounded-lg px-4 py-3 text-xs transition-all font-sans disabled:opacity-50 relative z-30"
           />
           <Button
             type="submit"
             disabled={isLoading || !input?.trim()}
-            className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold h-10 px-4 rounded-lg flex items-center justify-center shrink-0 cursor-pointer transition-all shadow-md shadow-cyan-500/10 border border-cyan-500/20 disabled:opacity-50"
+            className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold h-10 px-4 rounded-lg flex items-center justify-center shrink-0 cursor-pointer transition-all shadow-md shadow-cyan-500/10 border border-cyan-500/20 disabled:opacity-50 relative z-30"
           >
             <Send className="w-3.5 h-3.5" />
           </Button>
