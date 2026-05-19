@@ -83,8 +83,8 @@ export async function POST(req: Request) {
         entidadeId: crypto.randomUUID(), // ID randômico para a entidade documento simulada
         conteudoTexto: manual.conteudo,
         embedding: embedding,
-        criadoPor: session.user.id || 'system',
-        atualizadoPor: session.user.id || 'system'
+        createdBy: session.user.id || 'system',
+        updatedBy: session.user.id || 'system'
       });
 
       indexadosCount++;

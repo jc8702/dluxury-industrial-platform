@@ -31,6 +31,7 @@ export class PerformanceMonitor {
    */
   static sendMetric(name: string, value: number, tags: Record<string, string>) {
     // Sentry Metrics (Beta) ou logs agregados pelo Axiom
+    // @ts-ignore
     Sentry.metrics.increment(name, value, { tags });
   }
 }

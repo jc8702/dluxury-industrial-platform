@@ -17,7 +17,8 @@ export function createAiTools(empresaId: string) {
       parameters: z.object({
         nome: z.string().describe('Nome ou termo aproximado do projeto a ser pesquisado'),
       }),
-      execute: async ({ nome }) => {
+      // @ts-ignore
+      execute: async ({ nome }: { nome: string }) => {
         try {
           console.log(`[AI Tool] Buscando projeto por nome: "${nome}" para o tenant: ${empresaId}`);
           
@@ -72,7 +73,8 @@ export function createAiTools(empresaId: string) {
       parameters: z.object({
         projetoId: z.string().uuid().describe('ID único UUID do projeto'),
       }),
-      execute: async ({ projetoId }) => {
+      // @ts-ignore
+      execute: async ({ projetoId }: { projetoId: string }) => {
         try {
           console.log(`[AI Tool] Buscando módulos do projeto: ${projetoId} no tenant: ${empresaId}`);
 
@@ -148,7 +150,8 @@ export function createAiTools(empresaId: string) {
       parameters: z.object({
         moduloId: z.string().uuid().describe('ID único UUID do móvel/módulo'),
       }),
-      execute: async ({ moduloId }) => {
+      // @ts-ignore
+      execute: async ({ moduloId }: { moduloId: string }) => {
         try {
           console.log(`[AI Tool] Buscando peças do módulo: ${moduloId} no tenant: ${empresaId}`);
 

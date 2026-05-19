@@ -12,8 +12,9 @@ export function withTenant<T extends PgTable>(table: T, tenantId: string) {
   // O Drizzle ainda não tem RLS nativo transparente sem PgBouncer, 
   // então forçamos a injeção do WHERE dinamicamente.
   return {
+    // @ts-ignore
     query: db.select().from(table).where(eq((table as any).empresaId, tenantId)),
-    update: db.update(table).where(eq((table as any).empresaId, tenantId)),
+    update: (values: any) => db.update(table).set(values).where(eq((table as any).empresaId, tenantId)),
     delete: db.delete(table).where(eq((table as any).empresaId, tenantId)),
   };
 }

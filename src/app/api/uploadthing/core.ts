@@ -36,8 +36,7 @@ export const industrialFileRouter = {
 
   // Rota para DXF / STEP da Engenharia
   cadFile: f({ 
-    "application/dxf": { maxFileSize: "64MB" },
-    "model/step": { maxFileSize: "256MB" }
+    "blob": { maxFileSize: "64MB" },
   })
     .middleware(async () => {
       const user = await authMiddleware();

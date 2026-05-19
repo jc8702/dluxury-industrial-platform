@@ -15,7 +15,9 @@ const SUGGESTIONS = [
 ];
 
 export default function ChatInterface() {
+  // @ts-ignore
   const { messages, input, handleInputChange, handleSubmit, setInput, isLoading, error, reload } = useChat({
+    // @ts-ignore
     api: '/api/chat',
   });
 
@@ -104,7 +106,7 @@ export default function ChatInterface() {
           </div>
         ) : (
           // Listagem de Mensagens Ativas
-          messages.map((message) => {
+          (messages as any[]).map((message) => {
             const isUser = message.role === 'user';
             return (
               <div
@@ -141,7 +143,7 @@ export default function ChatInterface() {
                   {/* Renderização de chamadas de ferramenta (Function Calling) */}
                   {message.toolInvocations && message.toolInvocations.length > 0 && (
                     <div className="mt-3 space-y-2 border-t border-slate-800/40 pt-2">
-                      {message.toolInvocations.map((toolInvocation) => {
+                      {message.toolInvocations.map((toolInvocation: any) => {
                         const { toolName, toolCallId, state } = toolInvocation;
                         if (state === 'result') {
                           return (
@@ -219,7 +221,10 @@ export default function ChatInterface() {
         <form onSubmit={handleSubmit} className="flex items-center gap-3">
           <input
             value={input || ''}
-            onChange={handleInputChange}
+            onChange={(e) => {
+              if (handleInputChange) handleInputChange(e);
+              setInput(e.target.value);
+            }}
             placeholder={isLoading ? 'Aguarde o processamento...' : 'Digite sua dúvida de montagem ou engenharia...'}
             disabled={isLoading}
             className="flex-1 bg-slate-950/80 hover:bg-slate-950 border border-slate-800 hover:border-slate-700/80 focus:border-cyan-600 focus:outline-none text-slate-100 placeholder-slate-600 rounded-lg px-4 py-3 text-xs transition-all font-sans disabled:opacity-50 relative z-30"

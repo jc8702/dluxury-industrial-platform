@@ -16,10 +16,10 @@ export class VectorStore {
 
     await db.insert(embeddingsIa).values({
       empresaId,
-      documentoId: chunk.metadata.sourceId, // ID lógico do PDF/Origem
+      entidadeTipo: chunk.metadata.type || 'documento',
+      entidadeId: chunk.metadata.sourceId,
       conteudoTexto: chunk.content,
       embedding: embeddingStr as any,
-      metadados: chunk.metadata
     });
   }
 
@@ -36,7 +36,8 @@ export class VectorStore {
     const results = await db
       .select({
         conteudoTexto: embeddingsIa.conteudoTexto,
-        metadados: embeddingsIa.metadados,
+        entidadeTipo: embeddingsIa.entidadeTipo,
+        entidadeId: embeddingsIa.entidadeId,
         similarity: similarityQuery
       })
       .from(embeddingsIa)

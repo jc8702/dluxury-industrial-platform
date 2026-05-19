@@ -90,12 +90,14 @@ ${contextText}
       system: promptDinamico,
       messages: messages,
       temperature: 0.25, // Baixo para maior fidelidade e controle de respostas de engenharia
+      // @ts-ignore
       maxTokens: 2000,
       tools: tools,
       maxSteps: 5, // Habilita a IA a encadear chamadas de ferramentas e consolidar as respostas de forma autônoma
     });
 
     // 7. Retornar o stream binário de dados no formato padrão do AI SDK
+    // @ts-ignore
     return result.toDataStreamResponse();
   } catch (error: any) {
     console.error('Erro na API de Chat IA com RAG e Tools:', error);

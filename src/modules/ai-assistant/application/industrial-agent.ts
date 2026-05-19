@@ -39,7 +39,7 @@ REGRAS CRÍTICAS (DEVER DE MÁXIMA IMPORTÂNCIA):
 
     // 3. Constrói o Bloco de Contexto RAG para o LLM
     const contextText = relevantDocs
-      .map(doc => `[FONTE TÉCNICA - TIPO: ${doc.metadados.type} | SIMILARIDADE: ${(doc.similarity as number).toFixed(2)}]\n${doc.conteudoTexto}`)
+      .map(doc => `[FONTE TÉCNICA - TIPO: ${doc.entidadeTipo} | SIMILARIDADE: ${(doc.similarity as number).toFixed(2)}]\n${doc.conteudoTexto}`)
       .join('\n\n---\n\n');
 
     const finalPrompt = `
