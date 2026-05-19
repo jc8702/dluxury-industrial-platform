@@ -12,6 +12,17 @@ import { createAiTools } from '@/lib/ai/tools';
  */
 export async function POST(req: Request) {
   try {
+    // 0. Validar configuração do Gemini
+    if (!process.env.GEMINI_API_KEY && !process.env.GOOGLE_GENERATIVE_AI_API_KEY && !process.env.GOOGLE_AI_API_KEY) {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'Serviço de IA Indisponível: A chave de API do Gemini não está configurada no servidor (.env).' 
+        }),
+        { status: 503, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
     // 1. Validar autenticação do usuário com NextAuth v5
     const session = await auth();
     if (!session && process.env.NODE_ENV === 'production') {

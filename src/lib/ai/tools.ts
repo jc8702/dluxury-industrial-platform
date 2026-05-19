@@ -83,9 +83,10 @@ export function createAiTools(empresaId: string) {
               nome: ambientes.nome,
             })
             .from(ambientes)
+            .innerJoin(projetos, eq(ambientes.projetoId, projetos.id))
             .where(
               and(
-                eq(ambientes.empresaId, empresaId),
+                eq(projetos.empresaId, empresaId),
                 eq(ambientes.projetoId, projetoId)
               )
             );
@@ -111,9 +112,11 @@ export function createAiTools(empresaId: string) {
                 profundidade: moveis.profundidade,
               })
               .from(moveis)
+              .innerJoin(ambientes, eq(moveis.ambienteId, ambientes.id))
+              .innerJoin(projetos, eq(ambientes.projetoId, projetos.id))
               .where(
                 and(
-                  eq(moveis.empresaId, empresaId),
+                  eq(projetos.empresaId, empresaId),
                   eq(moveis.ambienteId, amb.id)
                 )
               );
@@ -161,9 +164,12 @@ export function createAiTools(empresaId: string) {
             })
             .from(pecas)
             .innerJoin(materiais, eq(pecas.materialId, materiais.id))
+            .innerJoin(moveis, eq(pecas.movelId, moveis.id))
+            .innerJoin(ambientes, eq(moveis.ambienteId, ambientes.id))
+            .innerJoin(projetos, eq(ambientes.projetoId, projetos.id))
             .where(
               and(
-                eq(pecas.empresaId, empresaId),
+                eq(projetos.empresaId, empresaId),
                 eq(pecas.movelId, moduloId)
               )
             );
