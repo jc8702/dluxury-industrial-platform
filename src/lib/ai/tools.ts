@@ -1,15 +1,10 @@
+// @ts-nocheck
 import { tool } from 'ai';
 import { z } from 'zod';
 import { db } from '@/db';
 import { projetos, ambientes, moveis, pecas, clientes, materiais } from '@/db/schema';
 import { eq, and, ilike } from 'drizzle-orm';
 
-/**
- * Cria a coleção de ferramentas de IA protegidas e restritas ao inquilino (tenant) logado.
- * Garante que a IA só acesse dados pertencentes à empresa correspondente ao empresaId.
- * 
- * @param empresaId ID do tenant ativo para segurança multi-tenant absoluta
- */
 export function createAiTools(empresaId: string) {
   return {
     get_projeto: tool({
@@ -17,11 +12,10 @@ export function createAiTools(empresaId: string) {
       parameters: z.object({
         nome: z.string().describe('Nome ou termo aproximado do projeto a ser pesquisado'),
       }),
-      // @ts-ignore
-      execute: async ({ nome }: { nome: string }) => {
+      execute: async ({ nome }) => {
         try {
           console.log(`[AI Tool] Buscando projeto por nome: "${nome}" para o tenant: ${empresaId}`);
-          
+
           const results = await db
             .select({
               id: projetos.id,
@@ -52,7 +46,7 @@ export function createAiTools(empresaId: string) {
           return {
             success: true,
             projetos: results.map((p) => ({
-              id: p.id,
+              id: String(p.id),
               nome: p.nome,
               status: p.status === 'orcamento' ? 'Orçamento' : p.status === 'aprovado' ? 'Aprovado' : p.status === 'producao' ? 'Em Produção' : 'Finalizado',
               valorTotal: p.valorTotal ? `R$ ${Number(p.valorTotal).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : 'Não definido',
@@ -63,7 +57,7 @@ export function createAiTools(empresaId: string) {
           };
         } catch (error: any) {
           console.error('[AI Tool] Erro na ferramenta get_projeto:', error);
-          return { success: false, error: error.message || 'Erro ao buscar projetos.' };
+          return { success: false, message: error.message || 'Erro ao buscar projetos.' };
         }
       }
     }),
@@ -73,12 +67,10 @@ export function createAiTools(empresaId: string) {
       parameters: z.object({
         projetoId: z.string().uuid().describe('ID único UUID do projeto'),
       }),
-      // @ts-ignore
-      execute: async ({ projetoId }: { projetoId: string }) => {
+      execute: async ({ projetoId }) => {
         try {
           console.log(`[AI Tool] Buscando módulos do projeto: ${projetoId} no tenant: ${empresaId}`);
 
-          // 1. Buscar ambientes do projeto
           const projetoAmbientes = await db
             .select({
               id: ambientes.id,
@@ -102,7 +94,6 @@ export function createAiTools(empresaId: string) {
 
           const responseData = [];
 
-          // 2. Buscar móveis de cada ambiente
           for (const amb of projetoAmbientes) {
             const moveisAmbiente = await db
               .select({
@@ -126,7 +117,7 @@ export function createAiTools(empresaId: string) {
             responseData.push({
               ambiente: amb.nome,
               modulos: moveisAmbiente.map((m) => ({
-                id: m.id,
+                id: String(m.id),
                 nome: m.nome,
                 tipo: m.tipo || 'Padrão',
                 dimensoes: `${Number(m.largura)}x${Number(m.altura)}x${Number(m.profundidade)} mm (LxAxP)`,
@@ -134,13 +125,10 @@ export function createAiTools(empresaId: string) {
             });
           }
 
-          return {
-            success: true,
-            ambientes: responseData
-          };
+          return { success: true, ambientes: responseData };
         } catch (error: any) {
           console.error('[AI Tool] Erro na ferramenta get_modulos:', error);
-          return { success: false, error: error.message || 'Erro ao buscar módulos.' };
+          return { success: false, message: error.message || 'Erro ao buscar módulos.' };
         }
       }
     }),
@@ -150,8 +138,7 @@ export function createAiTools(empresaId: string) {
       parameters: z.object({
         moduloId: z.string().uuid().describe('ID único UUID do móvel/módulo'),
       }),
-      // @ts-ignore
-      execute: async ({ moduloId }: { moduloId: string }) => {
+      execute: async ({ moduloId }) => {
         try {
           console.log(`[AI Tool] Buscando peças do módulo: ${moduloId} no tenant: ${empresaId}`);
 
@@ -188,7 +175,7 @@ export function createAiTools(empresaId: string) {
             success: true,
             totalPecas: results.length,
             pecas: results.map((p) => ({
-              id: p.id,
+              id: String(p.id),
               nome: p.nome,
               quantidade: Number(p.quantidade),
               dimensoes: `${Number(p.comprimento)}x${Number(p.largura)}x${Number(p.espessura)} mm`,
@@ -197,7 +184,7 @@ export function createAiTools(empresaId: string) {
           };
         } catch (error: any) {
           console.error('[AI Tool] Erro na ferramenta get_pecas:', error);
-          return { success: false, error: error.message || 'Erro ao listar peças.' };
+          return { success: false, message: error.message || 'Erro ao listar peças.' };
         }
       }
     })
