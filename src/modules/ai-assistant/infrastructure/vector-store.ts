@@ -12,14 +12,12 @@ export class VectorStore {
     if (!chunk.embedding) throw new Error("Chunk missing embedding array");
 
     // Pgvector requer formatação string [1.0, 2.0, 3.0]
-    const embeddingStr = `[${chunk.embedding.join(',')}]`;
-
     await db.insert(embeddingsIa).values({
       empresaId,
       entidadeTipo: chunk.metadata.type || 'documento',
       entidadeId: chunk.metadata.sourceId,
       conteudoTexto: chunk.content,
-      embedding: embeddingStr as any,
+      embedding: chunk.embedding,
     });
   }
 

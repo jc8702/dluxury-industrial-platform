@@ -5,7 +5,7 @@ import { gerarEmbedding } from '@/lib/ai/embeddings';
 import { chunkTechnicalDocument } from '@/lib/ai/chunking';
 import { logSecurityEvent } from '@/lib/auth/security-logs';
 import { eq } from 'drizzle-orm';
-import { google } from '@ai-sdk/google';
+import { google } from '@/lib/ai/client';
 import { generateText } from 'ai';
 
 /**
@@ -31,10 +31,10 @@ export async function processDocumentPipeline(documentId: string, empresaId: str
     const arrayBuffer = await fileResponse.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // OCR ROBUSTO MULTIMODAL COM GEMINI 2.5 PRO
+    // OCR ROBUSTO MULTIMODAL COM GEMINI 2.0 FLASH
     // O Gemini extrai não só texto, mas entende diagramas de montagem de ferragens!
     const { text: extractedText } = await generateText({
-      model: google('gemini-2.5-pro'),
+      model: google('gemini-2.0-flash'),
       messages: [
         { 
           role: 'user', 

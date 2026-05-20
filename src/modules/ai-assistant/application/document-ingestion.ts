@@ -1,5 +1,5 @@
 import { embed, embedMany } from 'ai';
-import { google } from '@ai-sdk/google';
+import { google } from '@/lib/ai/client';
 import { VectorStore } from '../infrastructure/vector-store';
 import { RAGDocumentChunk } from '../domain/types';
 // Simulando o import pdf-parse para leitura de Manuais de Ferragem
@@ -40,10 +40,15 @@ export class DocumentIngestionService {
   ) {
     const chunks = this.chunkText(rawText);
 
-    // Usa o modelo text-embedding-004 do Google (Otimizado para recuperação semântica)
+    // Usa o modelo gemini-embedding-001 do Google configurado para 768 dimensões
     const { embeddings } = await embedMany({
-      model: google.textEmbeddingModel('text-embedding-004'),
+      model: google.textEmbeddingModel('gemini-embedding-001'),
       values: chunks,
+      providerOptions: {
+        google: {
+          outputDimensionality: 768,
+        },
+      },
     });
 
     // Salvar no Banco Vetorial

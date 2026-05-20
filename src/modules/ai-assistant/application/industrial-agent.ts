@@ -1,5 +1,5 @@
 import { generateText, streamText, embed } from 'ai';
-import { google } from '@ai-sdk/google';
+import { google } from '@/lib/ai/client';
 import { VectorStore } from '../infrastructure/vector-store';
 import { AskRequest } from '../domain/types';
 
@@ -26,8 +26,13 @@ REGRAS CRÍTICAS (DEVER DE MÁXIMA IMPORTÂNCIA):
   public static async ask(request: AskRequest) {
     // 1. Vetoriza a pergunta do usuário para comparar com nossa base industrial
     const { embedding: queryEmbedding } = await embed({
-      model: google.textEmbeddingModel('text-embedding-004'),
+      model: google.textEmbeddingModel('gemini-embedding-001'),
       value: request.question,
+      providerOptions: {
+        google: {
+          outputDimensionality: 768,
+        },
+      },
     });
 
     // 2. Busca Fragmentos (Chunks) Relevantes no PostgreSQL (pgvector) daquele Tenant Específico
@@ -56,7 +61,7 @@ Lembre-se das suas diretrizes críticas. Responda baseando-se ESTRITAMENTE no co
 
     // 4. Invoca o Modelo Gemini 2.5 Pro (Otimizado para Raciocínio Profundo)
     const result = await streamText({
-      model: google('gemini-2.5-pro'),
+      model: google('gemini-2.0-flash'),
       system: this.SYSTEM_PROMPT,
       prompt: finalPrompt,
       temperature: 0.1, // Temperatura baixa forçando respostas precisas e matemáticas (menos criatividade, mais engenharia)

@@ -41,3 +41,12 @@ yarn-error.log*
 next-env.d.ts
 
 .vercel
+
+# scripts de teste local
+test-*.ts
+test-*.js
+
+# docs de execução internos (grandes demais para versionamento)
+dluxury_antigravity_execution_roadmap.md
+consolidacao_operacional.md
+correcao_arquitetura.md

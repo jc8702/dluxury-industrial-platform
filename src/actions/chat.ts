@@ -2,7 +2,7 @@
 'use server';
 
 import { streamText } from 'ai';
-import { google } from '@ai-sdk/google';
+import { google } from '@/lib/ai/client';
 import { retrieveTechnicalContext } from '@/lib/ai/retrieval';
 import { SYSTEM_PROMPT_MARCENAI } from '@/lib/ai/prompts';
 import { saveChatMemory, getChatMemory, CoreMessage } from '@/lib/ai/memory';
@@ -40,9 +40,9 @@ export async function askIndustrialAI(
     { role: 'user', content: userMessage }
   ];
 
-  // 5. Configura e dispara o Gemini 2.5 Pro
+  // 5. Configura e dispara o Gemini 2.0 Flash
   const result = await streamText({
-    model: google('gemini-2.5-pro'),
+    model: google('gemini-2.0-flash'),
     messages: messages as any,
     temperature: 0.0, // Regra Crítica: 0 para máxima precisão técnica e zero alucinação
   });

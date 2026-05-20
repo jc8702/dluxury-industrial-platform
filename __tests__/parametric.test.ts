@@ -40,6 +40,9 @@ describe('Parametric Engine - Composer & Validator', () => {
 
     expect(result.parameters.L).toBe(1000);
     expect(result.parts.find(p => p.id === 'base_inf')?.length).toBe(970); // 1000 - 30
+    if (result.validationErrors.length > 0) {
+      console.log('VALIDATION ERRORS:', result.validationErrors);
+    }
     expect(result.validationErrors.length).toBe(0);
   });
 

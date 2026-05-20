@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm';
 import { db } from '@/db';
 import { embeddingsIa } from '@/db/schema';
+import { gerarEmbedding } from './embeddings';
 
 export interface ContextoResultado {
   conteudoTexto: string;
@@ -49,5 +50,28 @@ export async function buscarContextoSemantico(
   } catch (error) {
     console.error('Erro na busca semântica RAG (pgvector):', error);
     return []; // Retorna lista vazia preventivamente para evitar travar o fluxo de chat
+  }
+}
+
+/**
+ * Função de conveniência para buscar o contexto semântico formatado como texto corrido
+ */
+export async function retrieveTechnicalContext(
+  query: string,
+  options: { empresaId: string; limit?: number; similarityThreshold?: number }
+): Promise<string> {
+  try {
+    const embedding = await gerarEmbedding(query);
+    const results = await buscarContextoSemantico(
+      options.empresaId,
+      embedding,
+      options.limit ?? 3,
+      options.similarityThreshold ?? 0.65
+    );
+    if (results.length === 0) return '';
+    return results.map(r => r.conteudoTexto).join('\n\n---\n\n');
+  } catch (error) {
+    console.error('Erro ao recuperar contexto técnico para a ação do Chat:', error);
+    return '';
   }
 }
