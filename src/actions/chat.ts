@@ -4,7 +4,7 @@
 import { streamText } from 'ai';
 import { google } from '@/lib/ai/client';
 import { retrieveTechnicalContext } from '@/lib/ai/retrieval';
-import { SYSTEM_PROMPT_MARCENAI } from '@/lib/ai/prompts';
+import { SYSTEM_PROMPT } from '@/lib/ai/prompts';
 import { saveChatMemory, getChatMemory, CoreMessage } from '@/lib/ai/memory';
 
 export async function askIndustrialAI(
@@ -31,7 +31,7 @@ export async function askIndustrialAI(
     contextInjection = `\n\n[CONTEXTO TÉCNICO RECUPERADO]: Nenhuma instrução específica encontrada. AJA COM CAUTELA.`;
   }
 
-  const finalSystemPrompt = SYSTEM_PROMPT_MARCENAI + contextInjection;
+  const finalSystemPrompt = SYSTEM_PROMPT + contextInjection;
 
   // 4. Constrói mensagens
   const messages: CoreMessage[] = [
