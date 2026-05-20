@@ -12,8 +12,6 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
-    "@ai-sdk/google": "^3.0.75",
-    "@ai-sdk/react": "^3.0.186",
     "@asteasolutions/zod-to-openapi": "^8.5.0",
     "@auth/drizzle-adapter": "^1.11.2",
     "@aws-sdk/client-s3": "^3.1048.0",
@@ -29,7 +27,6 @@
     "@uploadthing/react": "^7.3.3",
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.38.0",
-    "ai": "^6.0.184",
     "bcryptjs": "^3.0.3",
     "cmdk": "^1.1.1",
     "date-fns": "^4.1.0",
