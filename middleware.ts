@@ -21,6 +21,9 @@ export function middleware(request: NextRequest) {
   // Permite rotas de API de autenticação sem bloqueio
   if (isApiAuthRoute) return NextResponse.next();
 
+  // Allow /api/chat to pass through (NextAuth validates internally)
+  if (pathname === '/api/chat') return NextResponse.next();
+
   // APIs protegidas retornam 401 se não autenticado
   if (isApiRoute && !sessionToken) {
     return NextResponse.json(
