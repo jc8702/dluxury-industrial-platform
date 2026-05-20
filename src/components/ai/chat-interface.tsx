@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
-import { useChat } from '@ai-sdk/react';
+import { useState, useEffect, useRef } from 'react';
 import { Cpu, Send, User, Sparkles, AlertCircle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -13,35 +12,138 @@ const SUGGESTIONS = [
   { text: 'Como planejar o recuo de fundo de MDF para serviços?', label: 'Fundo & Serviços' },
 ];
 
-export default function ChatInterface() {
-  const { messages, input, handleInputChange, handleSubmit, setInput, isLoading, error, reload } = useChat({
-    api: '/api/chat',
-    maxChunks: 1,
-    sendExtraDetails: true,
-  });
+interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+}
 
+export default function ChatInterface() {
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSuggestionClick = (suggestionText: string) => {
-    setInput(suggestionText);
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
+
+  const sendMessage = async (text: string) => {
+    if (!text.trim() || isLoading) return;
+
+    const userMessage: ChatMessage = {
+      id: crypto.randomUUID(),
+      role: 'user',
+      content: text.trim(),
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setInput('');
+    setIsLoading(true);
+    setError('');
+
+    const assistantMessage: ChatMessage = {
+      id: crypto.randomUUID(),
+      role: 'assistant',
+      content: '',
+    };
+    setMessages(prev => [...prev, assistantMessage]);
+
+    try {
+      const history = [...messages, userMessage].map(m => ({
+        role: m.role,
+        content: m.content,
+      }));
+
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: history }),
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || `Erro HTTP ${res.status}`);
+      }
+
+      const reader = res.body?.getReader();
+      const decoder = new TextDecoder();
+
+      if (!reader) throw new Error('Stream não disponível');
+
+      let fullContent = '';
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (line.startsWith('0:')) {
+            try {
+              const data = JSON.parse(line.slice(2));
+              if (typeof data === 'string') {
+                fullContent += data;
+                setMessages(prev => {
+                  const updated = [...prev];
+                  const lastIdx = updated.findIndex(m => m.id === assistantMessage.id);
+                  if (lastIdx !== -1) updated[lastIdx] = { ...updated[lastIdx], content: fullContent };
+                  return updated;
+                });
+              }
+            } catch {}
+          } else if (line.startsWith('1:')) {
+            try {
+              const data = JSON.parse(line.slice(2));
+              if (data?.error) setError(data.error);
+            } catch {}
+          }
+        }
+      }
+
+      if (!fullContent.trim()) {
+        setError('A IA não retornou resposta. Tente novamente.');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Erro de conexão com o servidor.');
+      setMessages(prev => prev.filter(m => m.id !== assistantMessage.id));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    sendMessage(input);
+  };
+
+  const handleReload = () => {
+    const lastUserIdx = [...messages].reverse().findIndex(m => m.role === 'user');
+    if (lastUserIdx === -1) return;
+    const userMsg = messages[messages.length - 1 - lastUserIdx];
+    setMessages(prev => prev.slice(0, prev.length - 1 - lastUserIdx));
+    sendMessage(userMsg.content);
   };
 
   return (
-    <Card className="bg-[#13161C] border-slate-800/80 flex flex-col h-[70vh] w-full shadow-2xl relative overflow-hidden rounded-xl border">
-      <div className="absolute top-0 right-0 w-80 h-80 bg-blue-500/5 rounded-full blur-[100px] pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-80 h-80 bg-cyan-500/5 rounded-full blur-[100px] pointer-events-none" />
-
-      <div className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-slate-800/85 bg-[#171B24]/40 backdrop-blur-md">
+    <Card className="bg-[#13161C] border-slate-800/80 flex flex-col h-[70vh] w-full shadow-2xl overflow-hidden rounded-xl border flex flex-col">
+      <div className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-slate-800/85 bg-[#171B24]/40 backdrop-blur-md shrink-0">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-600 to-blue-600 flex items-center justify-center border border-cyan-500/20 shadow-lg shadow-cyan-500/10">
             <Cpu className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h3 className="text-sm font-extrabold text-white tracking-wider flex items-center gap-1.5 uppercase font-mono">
+            <h3 className="text-sm font-extrabold text-white tracking-wider uppercase font-mono flex items-center gap-1.5">
               MarcenAI Technical Assistant
               <span className="flex h-2 w-2 relative">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
@@ -54,9 +156,9 @@ export default function ChatInterface() {
           </div>
         </div>
 
-        {messages.length > 0 && (
+        {messages.filter(m => m.role === 'user').length > 0 && (
           <Button
-            onClick={() => reload()}
+            onClick={handleReload}
             variant="ghost"
             size="icon"
             className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg"
@@ -66,11 +168,11 @@ export default function ChatInterface() {
         )}
       </div>
 
-      <div className="relative z-10 flex-1 overflow-y-auto p-6 space-y-6">
+      <div className="relative z-10 flex-1 overflow-y-auto p-6 space-y-6 min-h-0">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center max-w-xl mx-auto space-y-6 py-8">
             <div className="w-12 h-12 bg-slate-900 border border-slate-800 rounded-2xl flex items-center justify-center text-cyan-400 shadow-inner">
-              <Sparkles className="w-6 h-6 animate-bounce" />
+              <Sparkles className="w-6 h-6" />
             </div>
             <div className="space-y-2">
               <h4 className="text-base font-bold text-white">Pronto para a Engenharia de Produção</h4>
@@ -83,7 +185,7 @@ export default function ChatInterface() {
               {SUGGESTIONS.map((sug, idx) => (
                 <button
                   key={idx}
-                  onClick={() => handleSuggestionClick(sug.text)}
+                  onClick={() => sendMessage(sug.text)}
                   className="flex flex-col items-start p-3 bg-[#1A1D24] hover:bg-[#222731] border border-slate-800/80 hover:border-cyan-500/20 text-left rounded-lg transition-all text-xs text-slate-400 hover:text-white"
                 >
                   <span className="font-mono text-[9px] text-cyan-500 tracking-wider font-extrabold uppercase mb-1">
@@ -111,53 +213,20 @@ export default function ChatInterface() {
                 )}
 
                 <div
-                  className={`max-w-[75%] rounded-xl px-4 py-3 text-xs leading-relaxed space-y-2 border ${
+                  className={`max-w-[75%] rounded-xl px-4 py-3 text-xs leading-relaxed space-y-1 border ${
                     isUser
                       ? 'bg-slate-900 border-slate-800 text-slate-200'
                       : 'bg-[#181C25] border-slate-800/60 text-slate-300'
                   }`}
                 >
-                  <div className="flex items-center space-x-1.5 mb-1">
-                    <span className="font-mono text-[9px] font-extrabold tracking-wider uppercase text-slate-500">
-                      {isUser ? 'OPERADOR' : 'MARCENAI ASSISTANT'}
-                    </span>
+                  <div className="font-mono text-[9px] font-extrabold tracking-wider uppercase text-slate-500 mb-1">
+                    {isUser ? 'OPERADOR' : 'MARCENAI ASSISTANT'}
                   </div>
-
                   <div className="whitespace-pre-wrap font-sans text-slate-300">
-                    {message.content}
+                    {message.content || (isLoading && message.role === 'assistant' ? '' : message.content)}
                   </div>
-
-                  {message.toolInvocations && message.toolInvocations.length > 0 && (
-                    <div className="mt-3 space-y-2 border-t border-slate-800/40 pt-2">
-                      {message.toolInvocations.map((toolInvocation) => {
-                        const { toolName, toolCallId, state } = toolInvocation as { toolName: string; toolCallId: string; state: string };
-                        if (state === 'result') {
-                          return (
-                            <div
-                              key={toolCallId}
-                              className="p-2 bg-slate-950/50 border border-slate-800/80 rounded-lg font-mono text-[9px] space-y-1 text-slate-400"
-                            >
-                              <div className="flex items-center gap-1.5 text-cyan-400 font-extrabold uppercase tracking-widest">
-                                <Cpu className="w-3 h-3" />
-                                <span>Core Tool: {toolName}</span>
-                              </div>
-                              <p className="text-slate-500 text-[8px] font-semibold">
-                                DADOS INTEGRADOS COM SUCESSO
-                              </p>
-                            </div>
-                          );
-                        }
-                        return (
-                          <div
-                            key={toolCallId}
-                            className="p-2 bg-slate-950/30 border border-slate-900 rounded-lg font-mono text-[9px] flex items-center gap-1.5 text-slate-500"
-                          >
-                            <RefreshCw className="w-3 h-3 animate-spin" />
-                            <span>Consultando core técnico via {toolName}...</span>
-                          </div>
-                        );
-                      })}
-                    </div>
+                  {isLoading && message.role === 'assistant' && !message.content && (
+                    <span className="text-slate-500 animate-pulse">Digitando...</span>
                   )}
                 </div>
 
@@ -173,8 +242,8 @@ export default function ChatInterface() {
 
         {isLoading && messages[messages.length - 1]?.role !== 'assistant' && (
           <div className="flex gap-4 justify-start">
-            <div className="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-cyan-400 shrink-0 animate-spin">
-              <RefreshCw className="w-4 h-4" />
+            <div className="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-cyan-400 shrink-0">
+              <RefreshCw className="w-4 h-4 animate-spin" />
             </div>
             <div className="bg-[#181C25] border border-slate-800/60 rounded-xl px-4 py-3 text-xs text-slate-500 font-mono tracking-wider animate-pulse flex items-center gap-2">
               <span>EXPLODINDO CONTEÚDO E PROCESSANDO GEOMETRIA...</span>
@@ -188,9 +257,7 @@ export default function ChatInterface() {
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
               <div className="space-y-1">
                 <p className="font-bold">Falha de Comunicação com a IA</p>
-                <p className="opacity-90 font-mono text-[10px]">
-                  {error.message || 'Erro ao processar resposta. Verifique a chave de API ou conexão.'}
-                </p>
+                <p className="opacity-90 font-mono text-[10px]">{error}</p>
               </div>
             </div>
           </div>
@@ -199,18 +266,20 @@ export default function ChatInterface() {
         <div ref={chatEndRef} />
       </div>
 
-      <div className="relative z-30 px-6 py-4 border-t border-slate-800/85 bg-[#171B24]/20 backdrop-blur-md">
+      <div className="shrink-0 px-6 py-4 border-t border-slate-800/85 bg-[#171B24]/20">
         <form onSubmit={handleSubmit} className="flex items-center gap-3">
           <input
+            ref={inputRef}
             value={input}
-            onChange={handleInputChange}
+            onChange={e => setInput(e.target.value)}
             placeholder={isLoading ? 'Aguarde o processamento...' : 'Digite sua dúvida de montagem ou engenharia...'}
             disabled={isLoading}
+            autoFocus
             className="flex-1 bg-slate-950/80 hover:bg-slate-950 border border-slate-800 hover:border-slate-700 focus:border-cyan-600 focus:outline-none text-slate-100 placeholder-slate-600 rounded-lg px-4 py-3 text-sm transition-all font-sans disabled:opacity-50"
           />
           <Button
             type="submit"
-            disabled={isLoading || !input?.trim()}
+            disabled={isLoading || !input.trim()}
             className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold h-10 px-4 rounded-lg flex items-center justify-center shrink-0 transition-all shadow-md shadow-cyan-500/10 border border-cyan-500/20 disabled:opacity-50"
           >
             <Send className="w-3.5 h-3.5" />
