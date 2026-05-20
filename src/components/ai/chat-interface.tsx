@@ -6,7 +6,6 @@ import { Cpu, Send, User, Sparkles, AlertCircle, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 
-// Sugestões de engenharia rápidas para facilitar a interação na fábrica
 const SUGGESTIONS = [
   { text: 'Qual profundidade recomendada para balcão inferior?', label: 'Profundidade Balcão' },
   { text: 'Por que prateleiras longas com mais de 1000mm empenam?', label: 'Reforço Estrutural' },
@@ -15,15 +14,14 @@ const SUGGESTIONS = [
 ];
 
 export default function ChatInterface() {
-  // @ts-ignore
   const { messages, input, handleInputChange, handleSubmit, setInput, isLoading, error, reload } = useChat({
-    // @ts-ignore
     api: '/api/chat',
+    maxChunks: 1,
+    sendExtraDetails: true,
   });
 
   const chatEndRef = useRef<HTMLDivElement>(null);
 
-  // Rolagem automática suave para manter a última mensagem sempre visível
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -34,14 +32,12 @@ export default function ChatInterface() {
 
   return (
     <Card className="bg-[#13161C] border-slate-800/80 flex flex-col h-[70vh] w-full shadow-2xl relative overflow-hidden rounded-xl border">
-      {/* Decoração sutil de engenharia no fundo */}
-      <div className="absolute top-0 right-0 w-80 h-80 bg-blue-500/5 rounded-full blur-[100px] pointer-events-none z-0" />
-      <div className="absolute bottom-0 left-0 w-80 h-80 bg-cyan-500/5 rounded-full blur-[100px] pointer-events-none z-0" />
+      <div className="absolute top-0 right-0 w-80 h-80 bg-blue-500/5 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-80 h-80 bg-cyan-500/5 rounded-full blur-[100px] pointer-events-none" />
 
-      {/* Header do Assistente */}
       <div className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-slate-800/85 bg-[#171B24]/40 backdrop-blur-md">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-600 to-blue-600 flex items-center justify-center border border-cyan-500/20 shadow-lg shadow-cyan-500/10 animate-pulse-subtle">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-600 to-blue-600 flex items-center justify-center border border-cyan-500/20 shadow-lg shadow-cyan-500/10">
             <Cpu className="w-5 h-5 text-white" />
           </div>
           <div>
@@ -53,7 +49,7 @@ export default function ChatInterface() {
               </span>
             </h3>
             <p className="text-[10px] text-slate-500 font-semibold tracking-wider font-mono">
-              ENGINEERING ENGINE & SPECS CORE
+              ENGINEERING ENGINE &amp; SPECS CORE
             </p>
           </div>
         </div>
@@ -63,18 +59,15 @@ export default function ChatInterface() {
             onClick={() => reload()}
             variant="ghost"
             size="icon"
-            className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg cursor-pointer relative z-20"
-            title="Refazer última resposta"
+            className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg"
           >
             <RefreshCw className="w-3.5 h-3.5" />
           </Button>
         )}
       </div>
 
-      {/* Área de Mensagens */}
-      <div className="relative z-10 flex-1 overflow-y-auto p-6 space-y-6 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent">
+      <div className="relative z-10 flex-1 overflow-y-auto p-6 space-y-6">
         {messages.length === 0 ? (
-          // Estado Vazio: Apresenta as boas-vindas e as sugestões rápidas
           <div className="flex flex-col items-center justify-center h-full text-center max-w-xl mx-auto space-y-6 py-8">
             <div className="w-12 h-12 bg-slate-900 border border-slate-800 rounded-2xl flex items-center justify-center text-cyan-400 shadow-inner">
               <Sparkles className="w-6 h-6 animate-bounce" />
@@ -86,18 +79,17 @@ export default function ChatInterface() {
               </p>
             </div>
 
-            {/* Grid de Sugestões rápidas */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full pt-4 relative z-20">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full pt-4">
               {SUGGESTIONS.map((sug, idx) => (
                 <button
                   key={idx}
                   onClick={() => handleSuggestionClick(sug.text)}
-                  className="flex flex-col items-start p-3 bg-[#1A1D24] hover:bg-[#222731] border border-slate-800/80 hover:border-cyan-500/20 text-left rounded-lg transition-all cursor-pointer group text-xs text-slate-400 hover:text-white relative z-20"
+                  className="flex flex-col items-start p-3 bg-[#1A1D24] hover:bg-[#222731] border border-slate-800/80 hover:border-cyan-500/20 text-left rounded-lg transition-all text-xs text-slate-400 hover:text-white"
                 >
-                  <span className="font-mono text-[9px] text-cyan-500 tracking-wider font-extrabold uppercase mb-1 pointer-events-none">
+                  <span className="font-mono text-[9px] text-cyan-500 tracking-wider font-extrabold uppercase mb-1">
                     {sug.label}
                   </span>
-                  <span className="line-clamp-2 leading-relaxed pointer-events-none">
+                  <span className="line-clamp-2 leading-relaxed">
                     {sug.text}
                   </span>
                 </button>
@@ -105,22 +97,19 @@ export default function ChatInterface() {
             </div>
           </div>
         ) : (
-          // Listagem de Mensagens Ativas
-          (messages as any[]).map((message) => {
+          messages.map((message) => {
             const isUser = message.role === 'user';
             return (
               <div
                 key={message.id}
                 className={`flex gap-4 ${isUser ? 'justify-end' : 'justify-start'}`}
               >
-                {/* Avatar da IA no lado esquerdo */}
                 {!isUser && (
                   <div className="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-cyan-400 shrink-0">
                     <Cpu className="w-4 h-4" />
                   </div>
                 )}
 
-                {/* Balão da Mensagem */}
                 <div
                   className={`max-w-[75%] rounded-xl px-4 py-3 text-xs leading-relaxed space-y-2 border ${
                     isUser
@@ -128,23 +117,20 @@ export default function ChatInterface() {
                       : 'bg-[#181C25] border-slate-800/60 text-slate-300'
                   }`}
                 >
-                  {/* Nome do remetente */}
                   <div className="flex items-center space-x-1.5 mb-1">
                     <span className="font-mono text-[9px] font-extrabold tracking-wider uppercase text-slate-500">
                       {isUser ? 'OPERADOR' : 'MARCENAI ASSISTANT'}
                     </span>
                   </div>
 
-                  {/* Conteúdo formatado da mensagem */}
                   <div className="whitespace-pre-wrap font-sans text-slate-300">
                     {message.content}
                   </div>
 
-                  {/* Renderização de chamadas de ferramenta (Function Calling) */}
                   {message.toolInvocations && message.toolInvocations.length > 0 && (
                     <div className="mt-3 space-y-2 border-t border-slate-800/40 pt-2">
-                      {message.toolInvocations.map((toolInvocation: any) => {
-                        const { toolName, toolCallId, state } = toolInvocation;
+                      {message.toolInvocations.map((toolInvocation) => {
+                        const { toolName, toolCallId, state } = toolInvocation as { toolName: string; toolCallId: string; state: string };
                         if (state === 'result') {
                           return (
                             <div
@@ -152,7 +138,7 @@ export default function ChatInterface() {
                               className="p-2 bg-slate-950/50 border border-slate-800/80 rounded-lg font-mono text-[9px] space-y-1 text-slate-400"
                             >
                               <div className="flex items-center gap-1.5 text-cyan-400 font-extrabold uppercase tracking-widest">
-                                <Cpu className="w-3 h-3 animate-pulse" />
+                                <Cpu className="w-3 h-3" />
                                 <span>Core Tool: {toolName}</span>
                               </div>
                               <p className="text-slate-500 text-[8px] font-semibold">
@@ -164,7 +150,7 @@ export default function ChatInterface() {
                         return (
                           <div
                             key={toolCallId}
-                            className="p-2 bg-slate-950/30 border border-slate-900 rounded-lg font-mono text-[9px] flex items-center gap-1.5 text-slate-500 animate-pulse"
+                            className="p-2 bg-slate-950/30 border border-slate-900 rounded-lg font-mono text-[9px] flex items-center gap-1.5 text-slate-500"
                           >
                             <RefreshCw className="w-3 h-3 animate-spin" />
                             <span>Consultando core técnico via {toolName}...</span>
@@ -175,7 +161,6 @@ export default function ChatInterface() {
                   )}
                 </div>
 
-                {/* Avatar do Usuário no lado direito */}
                 {isUser && (
                   <div className="w-8 h-8 rounded-lg bg-cyan-600/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 shrink-0">
                     <User className="w-4 h-4" />
@@ -186,7 +171,6 @@ export default function ChatInterface() {
           })
         )}
 
-        {/* Indicador de carregamento do streaming */}
         {isLoading && messages[messages.length - 1]?.role !== 'assistant' && (
           <div className="flex gap-4 justify-start">
             <div className="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-cyan-400 shrink-0 animate-spin">
@@ -198,7 +182,6 @@ export default function ChatInterface() {
           </div>
         )}
 
-        {/* Exibição de erro no chat */}
         {error && (
           <div className="flex gap-4 justify-center py-2">
             <div className="bg-red-950/30 border border-red-500/20 text-red-400 rounded-lg p-3 text-xs max-w-md flex items-start space-x-2">
@@ -216,23 +199,19 @@ export default function ChatInterface() {
         <div ref={chatEndRef} />
       </div>
 
-      {/* Painel e Input de Digitação */}
-      <div className="relative z-20 px-6 py-4 border-t border-slate-800/85 bg-[#171B24]/20 backdrop-blur-md">
+      <div className="relative z-30 px-6 py-4 border-t border-slate-800/85 bg-[#171B24]/20 backdrop-blur-md">
         <form onSubmit={handleSubmit} className="flex items-center gap-3">
           <input
-            value={input || ''}
-            onChange={(e) => {
-              if (handleInputChange) handleInputChange(e);
-              setInput(e.target.value);
-            }}
+            value={input}
+            onChange={handleInputChange}
             placeholder={isLoading ? 'Aguarde o processamento...' : 'Digite sua dúvida de montagem ou engenharia...'}
             disabled={isLoading}
-            className="flex-1 bg-slate-950/80 hover:bg-slate-950 border border-slate-800 hover:border-slate-700/80 focus:border-cyan-600 focus:outline-none text-slate-100 placeholder-slate-600 rounded-lg px-4 py-3 text-xs transition-all font-sans disabled:opacity-50 relative z-30"
+            className="flex-1 bg-slate-950/80 hover:bg-slate-950 border border-slate-800 hover:border-slate-700 focus:border-cyan-600 focus:outline-none text-slate-100 placeholder-slate-600 rounded-lg px-4 py-3 text-sm transition-all font-sans disabled:opacity-50"
           />
           <Button
             type="submit"
             disabled={isLoading || !input?.trim()}
-            className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold h-10 px-4 rounded-lg flex items-center justify-center shrink-0 cursor-pointer transition-all shadow-md shadow-cyan-500/10 border border-cyan-500/20 disabled:opacity-50 relative z-30"
+            className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold h-10 px-4 rounded-lg flex items-center justify-center shrink-0 transition-all shadow-md shadow-cyan-500/10 border border-cyan-500/20 disabled:opacity-50"
           >
             <Send className="w-3.5 h-3.5" />
           </Button>

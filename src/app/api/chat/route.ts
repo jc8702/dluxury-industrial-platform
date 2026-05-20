@@ -92,6 +92,7 @@ ${contextText}
       messages: messages,
       temperature: 0.25,
       maxOutputTokens: 2000,
+      maxToolCalls: 0,
       ...(tools ? { tools, stopWhen: stepCountIs(5) } : {}),
     });
 
