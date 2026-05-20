@@ -9,6 +9,8 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  // Resolve o warning "Next.js inferred your workspace root" causado por múltiplos package-lock.json
+  outputFileTracingRoot: require('path').join(__dirname),
 };
 
 // 1. Envelopa NextConfig com Axiom (Logs estruturados)

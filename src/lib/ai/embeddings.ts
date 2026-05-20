@@ -7,14 +7,12 @@ export async function gerarEmbedding(texto: string): Promise<number[]> {
       model: google.textEmbeddingModel('gemini-embedding-001'),
       value: texto,
       providerOptions: {
-        google: {
-          outputDimensionality: 768,
-        },
+        google: { outputDimensionality: 768 },
       },
     });
     return embedding;
   } catch (error: any) {
-    console.error('Erro na geração de embedding com Gemini:', error);
-    throw new Error(`Falha de vetorização: ${error.message || error}`);
+    console.error('Erro embedding Gemini:', error);
+    throw new Error(`Falha de vetorização: ${error.message}`);
   }
 }

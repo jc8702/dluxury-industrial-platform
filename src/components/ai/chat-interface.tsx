@@ -14,7 +14,7 @@ const SUGGESTIONS = [
 
 interface ChatMessage {
   id: string;
-  role: 'user' | 'assistant' | 'system';
+  role: 'user' | 'assistant';
   content: string;
 }
 
@@ -37,29 +37,16 @@ export default function ChatInterface() {
   const sendMessage = async (text: string) => {
     if (!text.trim() || isLoading) return;
 
-    const userMessage: ChatMessage = {
-      id: crypto.randomUUID(),
-      role: 'user',
-      content: text.trim(),
-    };
+    const userMessage: ChatMessage = { id: crypto.randomUUID(), role: 'user', content: text.trim() };
+    const assistantMessage: ChatMessage = { id: crypto.randomUUID(), role: 'assistant', content: '' };
 
-    setMessages(prev => [...prev, userMessage]);
+    setMessages(prev => [...prev, userMessage, assistantMessage]);
     setInput('');
     setIsLoading(true);
     setError('');
 
-    const assistantMessage: ChatMessage = {
-      id: crypto.randomUUID(),
-      role: 'assistant',
-      content: '',
-    };
-    setMessages(prev => [...prev, assistantMessage]);
-
     try {
-      const history = [...messages, userMessage].map(m => ({
-        role: m.role,
-        content: m.content,
-      }));
+      const history = [...messages, userMessage].map(m => ({ role: m.role, content: m.content }));
 
       const res = await fetch('/api/chat', {
         method: 'POST',
@@ -68,54 +55,41 @@ export default function ChatInterface() {
       });
 
       if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || `Erro HTTP ${res.status}`);
+        const errText = await res.text();
+        throw new Error(errText || `Erro HTTP ${res.status}`);
       }
 
       const reader = res.body?.getReader();
-      const decoder = new TextDecoder();
-
       if (!reader) throw new Error('Stream não disponível');
 
-      let fullContent = '';
-      let buffer = '';
+      const decoder = new TextDecoder();
+      let done = false;
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || '';
-
-        for (const line of lines) {
-          if (line.startsWith('0:')) {
-            try {
-              const data = JSON.parse(line.slice(2));
-              if (typeof data === 'string') {
-                fullContent += data;
-                setMessages(prev => {
-                  const updated = [...prev];
-                  const lastIdx = updated.findIndex(m => m.id === assistantMessage.id);
-                  if (lastIdx !== -1) updated[lastIdx] = { ...updated[lastIdx], content: fullContent };
-                  return updated;
-                });
-              }
-            } catch {}
-          } else if (line.startsWith('1:')) {
-            try {
-              const data = JSON.parse(line.slice(2));
-              if (data?.error) setError(data.error);
-            } catch {}
-          }
+      while (!done) {
+        const { value, done: d } = await reader.read();
+        done = d;
+        if (value) {
+          const chunk = decoder.decode(value, { stream: !done });
+          setMessages(prev => {
+            const updated = [...prev];
+            const last = updated[updated.length - 1];
+            if (last?.role === 'assistant') {
+              updated[updated.length - 1] = { ...last, content: last.content + chunk };
+            }
+            return updated;
+          });
         }
       }
 
-      if (!fullContent.trim()) {
-        setError('A IA não retornou resposta. Tente novamente.');
-      }
+      setMessages(prev => {
+        const last = prev[prev.length - 1];
+        if (last?.role === 'assistant' && !last.content.trim()) {
+          return prev.slice(0, -1);
+        }
+        return prev;
+      });
     } catch (err: any) {
-      setError(err.message || 'Erro de conexão com o servidor.');
+      setError(err.message || 'Erro de conexão.');
       setMessages(prev => prev.filter(m => m.id !== assistantMessage.id));
     } finally {
       setIsLoading(false);
@@ -127,17 +101,9 @@ export default function ChatInterface() {
     sendMessage(input);
   };
 
-  const handleReload = () => {
-    const lastUserIdx = [...messages].reverse().findIndex(m => m.role === 'user');
-    if (lastUserIdx === -1) return;
-    const userMsg = messages[messages.length - 1 - lastUserIdx];
-    setMessages(prev => prev.slice(0, prev.length - 1 - lastUserIdx));
-    sendMessage(userMsg.content);
-  };
-
   return (
-    <Card className="bg-[#13161C] border-slate-800/80 flex flex-col h-[70vh] w-full shadow-2xl overflow-hidden rounded-xl border flex flex-col">
-      <div className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-slate-800/85 bg-[#171B24]/40 backdrop-blur-md shrink-0">
+    <Card className="bg-[#13161C] border-slate-800/80 flex flex-col h-[70vh] w-full shadow-2xl overflow-hidden rounded-xl border">
+      <div className="shrink-0 flex items-center justify-between px-6 py-4 border-b border-slate-800/85 bg-[#171B24]/40 backdrop-blur-md">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-600 to-blue-600 flex items-center justify-center border border-cyan-500/20 shadow-lg shadow-cyan-500/10">
             <Cpu className="w-5 h-5 text-white" />
@@ -145,7 +111,7 @@ export default function ChatInterface() {
           <div>
             <h3 className="text-sm font-extrabold text-white tracking-wider uppercase font-mono flex items-center gap-1.5">
               MarcenAI Technical Assistant
-              <span className="flex h-2 w-2 relative">
+              <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
               </span>
@@ -156,9 +122,15 @@ export default function ChatInterface() {
           </div>
         </div>
 
-        {messages.filter(m => m.role === 'user').length > 0 && (
+        {messages.length > 0 && (
           <Button
-            onClick={handleReload}
+            onClick={() => {
+              const lastUser = [...messages].reverse().find(m => m.role === 'user');
+              if (lastUser) {
+                setMessages([]);
+                sendMessage(lastUser.content);
+              }
+            }}
             variant="ghost"
             size="icon"
             className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg"
@@ -168,10 +140,10 @@ export default function ChatInterface() {
         )}
       </div>
 
-      <div className="relative z-10 flex-1 overflow-y-auto p-6 space-y-6 min-h-0">
+      <div className="flex-1 overflow-y-auto p-6 space-y-6 min-h-0">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center max-w-xl mx-auto space-y-6 py-8">
-            <div className="w-12 h-12 bg-slate-900 border border-slate-800 rounded-2xl flex items-center justify-center text-cyan-400 shadow-inner">
+            <div className="w-12 h-12 bg-slate-900 border border-slate-800 rounded-2xl flex items-center justify-center text-cyan-400">
               <Sparkles className="w-6 h-6" />
             </div>
             <div className="space-y-2">
@@ -188,12 +160,8 @@ export default function ChatInterface() {
                   onClick={() => sendMessage(sug.text)}
                   className="flex flex-col items-start p-3 bg-[#1A1D24] hover:bg-[#222731] border border-slate-800/80 hover:border-cyan-500/20 text-left rounded-lg transition-all text-xs text-slate-400 hover:text-white"
                 >
-                  <span className="font-mono text-[9px] text-cyan-500 tracking-wider font-extrabold uppercase mb-1">
-                    {sug.label}
-                  </span>
-                  <span className="line-clamp-2 leading-relaxed">
-                    {sug.text}
-                  </span>
+                  <span className="font-mono text-[9px] text-cyan-500 tracking-wider font-extrabold uppercase mb-1">{sug.label}</span>
+                  <span className="line-clamp-2 leading-relaxed">{sug.text}</span>
                 </button>
               ))}
             </div>
@@ -202,34 +170,18 @@ export default function ChatInterface() {
           messages.map((message) => {
             const isUser = message.role === 'user';
             return (
-              <div
-                key={message.id}
-                className={`flex gap-4 ${isUser ? 'justify-end' : 'justify-start'}`}
-              >
+              <div key={message.id} className={`flex gap-4 ${isUser ? 'justify-end' : 'justify-start'}`}>
                 {!isUser && (
                   <div className="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-cyan-400 shrink-0">
                     <Cpu className="w-4 h-4" />
                   </div>
                 )}
-
-                <div
-                  className={`max-w-[75%] rounded-xl px-4 py-3 text-xs leading-relaxed space-y-1 border ${
-                    isUser
-                      ? 'bg-slate-900 border-slate-800 text-slate-200'
-                      : 'bg-[#181C25] border-slate-800/60 text-slate-300'
-                  }`}
-                >
+                <div className={`max-w-[75%] rounded-xl px-4 py-3 text-xs leading-relaxed border ${isUser ? 'bg-slate-900 border-slate-800 text-slate-200' : 'bg-[#181C25] border-slate-800/60 text-slate-300'}`}>
                   <div className="font-mono text-[9px] font-extrabold tracking-wider uppercase text-slate-500 mb-1">
                     {isUser ? 'OPERADOR' : 'MARCENAI ASSISTANT'}
                   </div>
-                  <div className="whitespace-pre-wrap font-sans text-slate-300">
-                    {message.content || (isLoading && message.role === 'assistant' ? '' : message.content)}
-                  </div>
-                  {isLoading && message.role === 'assistant' && !message.content && (
-                    <span className="text-slate-500 animate-pulse">Digitando...</span>
-                  )}
+                  <div className="whitespace-pre-wrap font-sans text-slate-300">{message.content}</div>
                 </div>
-
                 {isUser && (
                   <div className="w-8 h-8 rounded-lg bg-cyan-600/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 shrink-0">
                     <User className="w-4 h-4" />
@@ -245,8 +197,8 @@ export default function ChatInterface() {
             <div className="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-cyan-400 shrink-0">
               <RefreshCw className="w-4 h-4 animate-spin" />
             </div>
-            <div className="bg-[#181C25] border border-slate-800/60 rounded-xl px-4 py-3 text-xs text-slate-500 font-mono tracking-wider animate-pulse flex items-center gap-2">
-              <span>EXPLODINDO CONTEÚDO E PROCESSANDO GEOMETRIA...</span>
+            <div className="bg-[#181C25] border border-slate-800/60 rounded-xl px-4 py-3 text-xs text-slate-500 font-mono animate-pulse flex items-center gap-2">
+              PROCESSANDO GEOMETRIA...
             </div>
           </div>
         )}
@@ -274,8 +226,7 @@ export default function ChatInterface() {
             onChange={e => setInput(e.target.value)}
             placeholder={isLoading ? 'Aguarde o processamento...' : 'Digite sua dúvida de montagem ou engenharia...'}
             disabled={isLoading}
-            autoFocus
-            className="flex-1 bg-slate-950/80 hover:bg-slate-950 border border-slate-800 hover:border-slate-700 focus:border-cyan-600 focus:outline-none text-slate-100 placeholder-slate-600 rounded-lg px-4 py-3 text-sm transition-all font-sans disabled:opacity-50"
+            className="flex-1 bg-slate-950/80 hover:bg-slate-950 border border-slate-800 hover:border-slate-700 focus:border-cyan-600 focus:outline-none text-slate-100 placeholder-slate-600 rounded-lg px-4 py-3 text-sm transition-all disabled:opacity-50"
           />
           <Button
             type="submit"
@@ -285,7 +236,7 @@ export default function ChatInterface() {
             <Send className="w-3.5 h-3.5" />
           </Button>
         </form>
-        <div className="flex items-center justify-between mt-2 text-[9px] text-slate-600 font-mono tracking-wider font-bold">
+        <div className="flex items-center justify-between mt-2 text-[9px] text-slate-600 font-mono font-bold">
           <span>GEMINI CORE INTEGRATION v2.0</span>
           <span>VALORES EM MM (MILÍMETROS)</span>
         </div>
